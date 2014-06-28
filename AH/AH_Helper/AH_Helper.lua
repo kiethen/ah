@@ -1425,44 +1425,16 @@ function AH_Helper.OnBreathe()
 	AH_Helper.UpdateAllBidItemTime(frame)
 end
 
--- 防止被其他冲突插件重复Hook，保护AH接口
+-- 禁止其他类似插件更改接口
 local function protect(object)
-	local _plist = {
-		"UpdateItemList", 
-		"SetSaleInfo", 
-		"FormatAuctionTime", 
-		"GetItemSellInfo", 
-		"OnMouseEnter", 
-		"OnMouseLeave", 
-		"OnFrameBreathe",
-		"OnLButtonClick", 
-		"OnExchangeBoxItem", 
-		"AuctionSell", 
-		"UpdateItemPriceInfo", 
-		"ApplyLookup", 
-		"OnItemLButtonClick", 
-		"OnItemLButtonDBClick", 
-		"OnItemRButtonClick", 
-		"OnItemMouseEnter",
-		"OnItemMouseLeave", 
-		"OnEditChanged", 
-		"ShowNotice", 
-		"UpdateSaleInfo", 
-		"ExchangeBagAndAuctionItem",
-	}
 	local proxy = {}
 	local mt = {
 		__index = object,
 		__newindex = function(t, k, v)
-			local function _exists(name)
-				for k, v in ipairs(_plist) do
-					if name == v then
-						return true
-					end
-				end
-				return false
+			local function _fn(v)
+				return (type(v) == "function") and true or false
 			end
-			if not _exists(k) then
+			if not _fn(v) then
 				object[k] = v
 			--else
 			--	Output("【冲突】有类似插件试图接管" .. k .. "接口")
