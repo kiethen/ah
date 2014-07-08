@@ -545,14 +545,14 @@ function AH_Library.OnFrameBreathe()
 			if v[3] then
 				pcall(f, unpack(v[3]))
 			else
-				f()
+				pcall(f)
 			end
 		end
 	end
 
 	for szKey, fnAction in pairs(tBreatheAction) do
 		assert(fnAction)
-		fnAction()
+		pcall(fnAction)
 	end
 end
 
