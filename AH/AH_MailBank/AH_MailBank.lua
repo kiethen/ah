@@ -8,7 +8,7 @@ AH_MailBank = {
 	tItemCache = {},
 	tSendCache = {},
 	tMoneyCache = {},
-	szDataPath = "\\Interface\\AH\\AH_Base\\data\\mail.dat",
+	szDataPath = "\\Interface\\AH\\AH_Base\\data\\mail.jx3dat",
 	szCurRole = nil,
 	nCurIndex = 1,
 	szCurKey = "",
@@ -889,17 +889,17 @@ function AH_MailBank.OnItemMouseEnter()
 					local MailClient = GetMailClient()
 					for k, v in ipairs(d.tMailIDs) do
 						local mail = MailClient.GetMailInfo(v)
-						szTip = szTip .. GetFormatText(string.format("\n\n%s", mail.szSenderName), 164)
-						szTip = szTip .. GetFormatText(string.format(" ¡º%s¡»\n", mail.szTitle), 163)
+						szTip = szTip .. GetFormatText(string.format("\n%s", mail.szSenderName), 164)
+						szTip = szTip .. GetFormatText(string.format(" ¡º%s¡»", mail.szTitle), 163)
 						local szLeft = AH_MailBank.FormatItemLeftTime(mail.GetLeftTime())
 						szTip = szTip .. GetFormatText(L("STR_MAILBANK_LEFTTIME", szLeft), 162)
 						local nCount = AH_MailBank.GetMailItem(mail)[szName][5]
 						szTip = szTip .. GetFormatText(L("STR_MAILBANK_NUMBER", nCount), 162)
 					end
-					OutputTip(szTip, 300, {x, y, w, h})
+					OutputTip(szTip, 800, {x, y, w, h})
 				else
 					local szTip = GetFormatText(this.szName, 162)
-					OutputTip(szTip, 300, {x, y, w, h})
+					OutputTip(szTip, 800, {x, y, w, h})
 				end
 			end
 		elseif this.szType == "money" then
@@ -907,13 +907,13 @@ function AH_MailBank.OnItemMouseEnter()
 			local MailClient = GetMailClient()
 			for k, v in ipairs(d.tMailIDs) do
 				local mail = MailClient.GetMailInfo(v)
-				szTip = szTip .. GetFormatText(string.format("\n\n%s", mail.szSenderName), 164)
-				szTip = szTip .. GetFormatText(string.format(" ¡º%s¡»\n", mail.szTitle), 163)
+				szTip = szTip .. GetFormatText(string.format("\n%s", mail.szSenderName), 164)
+				szTip = szTip .. GetFormatText(string.format(" ¡º%s¡»", mail.szTitle), 163)
 				local szLeft = AH_MailBank.FormatItemLeftTime(mail.GetLeftTime())
 				szTip = szTip .. GetFormatText(L("STR_MAILBANK_LEFTTIME", szLeft), 162)
 				szTip = szTip .. GetFormatText(g_tStrings.STR_MAIL_HAVE_MONEY, 162) .. GetMoneyTipText(mail.nMoney, 106)
 			end
-			OutputTip(szTip, 300, {x, y, w, h})
+			OutputTip(szTip, 800, {x, y, w, h})
 		end
 	end
 end

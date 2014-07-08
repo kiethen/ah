@@ -41,7 +41,7 @@ AH_Helper = {
 	tItemHistory = {},
 	tItemPrice = {},
 
-	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.dat",
+	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
 	szVersion = "3.0.0",
 }
 
@@ -1066,7 +1066,7 @@ end
 function AH_Helper.OutputTip(szText, nFont)
 	local x, y = this:GetAbsPos()
 	local w, h = this:GetSize()
-	OutputTip(GetFormatText(szText, nFont or 18), 300, {x, y, w, h})
+	OutputTip(GetFormatText(szText, nFont or 18), 800, {x, y, w, h})
 end
 
 function AH_Helper.GetPrediction(hItem)
@@ -1425,7 +1425,6 @@ function AH_Helper.OnBreathe()
 	AH_Helper.UpdateAllBidItemTime(frame)
 end
 
--- 禁止其他类似插件更改接口
 local function protect(object)
 	local proxy = {}
 	local mt = {
@@ -1436,8 +1435,6 @@ local function protect(object)
 			end
 			if not _fn(v) then
 				object[k] = v
-			--else
-			--	Output("【冲突】有类似插件试图接管" .. k .. "接口")
 			end
 		end
 	}

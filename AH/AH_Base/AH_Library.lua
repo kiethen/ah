@@ -207,16 +207,6 @@ if not EditBox_TalkToSomebody then
 	end
 end
 
-if not IsAuctionPanelOpened then
-	IsAuctionPanelOpened = function()
-		local frame = Station.Lookup("Normal/AuctionPanel")
-		if frame and frame:IsVisible() then
-			return true
-		end
-		return false
-	end
-end
-
 if not IsBigBagPanelOpened then
 	IsBigBagPanelOpened = function()
 		local frame = Station.Lookup("Normal/BigBagPanel")

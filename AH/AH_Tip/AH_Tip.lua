@@ -72,7 +72,7 @@ function AH_Tip.OnUpdate()
 				local x, y = this:GetAbsPos()
 				local w, h = this:GetSize()
 				local szTip = GetFormatText(L("STR_TIP_SPLITTIP"), 162)
-				OutputTip(szTip, 400, {x, y, w, h})
+				OutputTip(szTip, 800, {x, y, w, h})
 			end
 			bBagHooked = true
 		elseif not frame:IsVisible() then
