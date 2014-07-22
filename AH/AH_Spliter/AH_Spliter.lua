@@ -85,7 +85,7 @@ function AH_Spliter.SplitItem(frame)
         return
     end
 
-	local tFreeBoxList = AH_Spliter.GetPlayerBagFreeBoxList()
+	local tFreeBoxList = AH_Library.GetPlayerBagFreeBoxList()
 	if #tFreeBoxList < nGroup then
 		AH_Library.Message(L("STR_SPLITER_NOBAGPOS"))
 		return
@@ -104,24 +104,6 @@ function AH_Spliter.SplitItem(frame)
 	AH_Library.Message(L("STR_SPLITER_ENDSPLIT"))
 end
 
-function AH_Spliter.GetPlayerBagFreeBoxList()
-	local player = GetClientPlayer()
-	local tBoxTable = {}
-	for nIndex = 6, 1, -1 do
-		local dwBox = INVENTORY_INDEX.PACKAGE + nIndex - 1
-		local dwSize = player.GetBoxSize(dwBox)
-		if dwSize > 0 then
-			for dwX = dwSize, 1, -1 do
-				local item = player.GetItem(dwBox, dwX - 1)
-				if not item then
-					local i, j = dwBox, dwX - 1
-					table.insert(tBoxTable, {i, j})
-				end
-			end
-		end
-	end
-	return tBoxTable
-end
 
 function AH_Spliter.OnExchangeBoxItem(boxItem, boxDsc, nHandCount, bHand)
 	if not boxDsc then

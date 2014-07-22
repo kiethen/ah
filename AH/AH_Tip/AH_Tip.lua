@@ -64,7 +64,7 @@ function AH_Tip.OnUpdate()
 				AH_Tip.UpdateNormal(frame)
 			end
 			local hSplit = frame:Lookup("Btn_Split")
-			hSplit:Lookup("","Text_Split"):SetText(L("STR_TIP_STACK"))
+			--hSplit:Lookup("","Text_Split"):SetText(L("STR_TIP_STACK"))
 			hSplit.OnRButtonClick = function()
 				AH_Spliter.StackItem()
 			end
@@ -175,7 +175,7 @@ function AH_Tip.GetBagItemTip(box)
 		local nItemCountInBank = nItemCountTotal - nItemCountInPackage
 
 		szTip = szTip .. GetFormatText(L("STR_TIP_TOTAL"), 101) .. GetFormatText(nItemCountTotal, 162)
-		szTip = szTip .. GetFormatText(L("STR_TIP_BAG"), 101) .. GetFormatText(nItemCountInPackage, 162) .. GetFormatText(L("STR_TIP_BANk"), 101) .. GetFormatText(nItemCountInBank, 162)
+		szTip = szTip .. GetFormatText(L("STR_TIP_BAGANDBANK"), 101) .. GetFormatText(nItemCountInPackage, 162) .. GetFormatText("/", 162) .. GetFormatText(nItemCountInBank, 162)
 
 		--配方
 		if item.nGenre == ITEM_GENRE.MATERIAL then
@@ -240,7 +240,7 @@ function AH_Tip.GetRecipeTip(player, item)
 		if bFlag and szInner ~= "" then szTip = szTip .. szOuter .. szInner end
 		szOuter, szInner = GetFormatText("\n" .. L("STR_TIP_RECIPEUNLEARN"), 166), ""
 		for k, v in ipairs(tRecipeSkill) do
-			if player.IsProfessionLearnedByCraftID(v[2]) then
+			--if player.IsProfessionLearnedByCraftID(v[2]) then	--去除未学显示限制
 				local tRecipe = AH_Library.tMaterialALL[v[2]][szItemName]
 				if not IsTableEmpty(tRecipe) then
 					local temp = {}
@@ -262,7 +262,7 @@ function AH_Tip.GetRecipeTip(player, item)
 						szInner = szInner .. table.concat(t2, GetFormatText("，", 162))
 					end
 				end
-			end
+			--end
 		end
 		if bFlag and szInner ~= "" then szTip = szTip .. szOuter .. szInner end
 	end

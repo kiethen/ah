@@ -576,4 +576,24 @@ function AH_Library.Message(szMsg, szType)
 	end
 end
 
+function AH_Library.GetPlayerBagFreeBoxList()
+	local player = GetClientPlayer()
+	local tBoxTable = {}
+	for nIndex = 6, 1, -1 do
+		local dwBox = INVENTORY_INDEX.PACKAGE + nIndex - 1
+		local dwSize = player.GetBoxSize(dwBox)
+		if dwSize > 0 then
+			for dwX = dwSize, 1, -1 do
+				local item = player.GetItem(dwBox, dwX - 1)
+				if not item then
+					local i, j = dwBox, dwX - 1
+					table.insert(tBoxTable, {i, j})
+				end
+			end
+		end
+	end
+	return tBoxTable
+end
+
+
 Wnd.OpenWindow(szIniFile, "AH_Library")

@@ -337,7 +337,7 @@ function AH_MailBank.OnUpdate()
 				local hBtnMailBank = temp:Lookup("Btn_MailBank")
 				if hBtnMailBank then
 					hBtnMailBank:ChangeRelation(page, true, true)
-					hBtnMailBank:SetRelPos(600, 8)
+					hBtnMailBank:SetRelPos(50, 8)
 					hBtnMailBank:Lookup("", ""):Lookup("Text_MailBank"):SetText(L("STR_MAILBANK_MAILTIP1"))
 					hBtnMailBank.OnLButtonClick = function()
 						if not AH_MailBank.IsPanelOpened() then
@@ -477,7 +477,7 @@ end
 
 -- È¡¸½¼þ
 function AH_MailBank.TakeMailItemToBag(fnAction, nCount)
-	local tFreeBoxList = AH_Spliter.GetPlayerBagFreeBoxList()
+	local tFreeBoxList = AH_Library.GetPlayerBagFreeBoxList()
 	if nCount > #tFreeBoxList then
 		AH_Library.Message(L("STR_MAILBANK_TIP2"))
 		OutputWarningMessage("MSG_NOTICE_YELLOW", L("STR_MAILBANK_TIP2"), 2)

@@ -42,7 +42,7 @@ AH_Helper = {
 	tItemPrice = {},
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
-	szVersion = "3.0.0",
+	szVersion = "3.0.1",
 }
 
 
@@ -174,7 +174,7 @@ AH_Helper.OnItemMouseEnterOrg = AuctionPanel.OnItemMouseEnter
 AH_Helper.OnItemMouseLeaveOrg = AuctionPanel.OnItemMouseLeave
 AH_Helper.OnEditChangedOrg = AuctionPanel.OnEditChanged
 AH_Helper.InitOrg = AuctionPanel.Init
---AH_Helper.ShowNoticeOrg = AuctionPanel.ShowNotice
+--AH_Helper.ShowNoticeOrg = AuctionPanel.ShowNotice	--去除免确认
 AH_Helper.UpdateSaleInfoOrg = AuctionPanel.UpdateSaleInfo
 AH_Helper.ExchangeBagAndAuctionItemOrg = AuctionPanel.ExchangeBagAndAuctionItem
 
@@ -919,6 +919,20 @@ function AH_Helper.AddWidget(frame)
 				menu.y = yT + hT
 				PopupMenu(menu)
 			end
+			hBtnHistory.OnRButtonClick = function()
+				local menu = {}
+				for k, v in pairs(AH_Helper.tItemFavorite) do
+					table.insert(menu,
+					{
+						szOption = k,
+						fnAction = function() 
+							bAutoSearch = false 
+							AH_Helper.UpdateList(k, L("STR_HELPER_FAVORITEITEMS")) 
+						end,
+					})
+				end
+				PopupMenu(menu)
+			end
 		end
 	end
 
@@ -1032,8 +1046,8 @@ function AH_Helper.AddWidget(frame)
 						{szOption = L("STR_HELPER_COPPER"), bMCheck = true, bChecked = (AH_Helper.nDefaultPrices == 1), fnDisable = function() return AH_Helper.bPricePercentage or not AH_Helper.bLowestPrices end, fnAction = function() AH_Helper.nDefaultPrices = 1 end,},
 						{szOption = L("STR_HELPER_SLIVER"), bMCheck = true, bChecked = (AH_Helper.nDefaultPrices == 1 * 100), fnDisable = function() return AH_Helper.bPricePercentage or not AH_Helper.bLowestPrices end, fnAction = function() AH_Helper.nDefaultPrices = 1 * 100 end,},
 						{szOption = L("STR_HELPER_GOLD"), bMCheck = true, bChecked = (AH_Helper.nDefaultPrices == 100 * 100), fnDisable = function() return AH_Helper.bPricePercentage or not AH_Helper.bLowestPrices end, fnAction = function() AH_Helper.nDefaultPrices = 100 * 100 end,},
-						{ bDevide = true },
-						{szOption = L("STR_HELPER_DBCTRLSELL"), bCheck = true, bChecked = AH_Helper.bDBCtrlSell, fnAction = function() AH_Helper.bDBCtrlSell = not AH_Helper.bDBCtrlSell end,},
+						--{ bDevide = true },
+						--{szOption = L("STR_HELPER_DBCTRLSELL"), bCheck = true, bChecked = AH_Helper.bDBCtrlSell, fnAction = function() AH_Helper.bDBCtrlSell = not AH_Helper.bDBCtrlSell end,},
 					},
 					{ bDevide = true },
 					--[[{szOption = L("STR_HELPER_NOALLPROMPT"), bCheck = true, bChecked = AH_Helper.bNoAllPrompt, fnAction = function() AH_Helper.bNoAllPrompt = not AH_Helper.bNoAllPrompt end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_NOALLPROMPTTIPS")) end,
@@ -1041,6 +1055,7 @@ function AH_Helper.AddWidget(frame)
 						{szOption = L("STR_HELPER_DBCTRLSELL"), bCheck = true, bChecked = AH_Helper.bDBCtrlSell, fnAction = function() AH_Helper.bDBCtrlSell = not AH_Helper.bDBCtrlSell end,},
 					},
 					{ bDevide = true },]]
+					{szOption = L("STR_HELPER_FASTSELL"), bCheck = false, bChecked = AH_Helper.bDBCtrlSell, fnAction = function() AH_Helper.bDBCtrlSell = not AH_Helper.bDBCtrlSell end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_DBCTRLSELL")) end,},
 					{szOption = L("STR_HELPER_FASTBID"), bCheck = true, bChecked = AH_Helper.bFastBid, fnAction = function() AH_Helper.bFastBid = not AH_Helper.bFastBid end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_FASTBIDTIPS")) end,},
 					{szOption = L("STR_HELPER_FASTBUY"), bCheck = true, bChecked = AH_Helper.bFastBuy, fnAction = function() AH_Helper.bFastBuy = not AH_Helper.bFastBuy end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_FASTBUYTIPS")) end,
 						{szOption = L("STR_HELPER_DBCLICKTYPE"), bCheck = true, bChecked = AH_Helper.bDBClickFastBuy, fnAction = function() AH_Helper.bDBClickFastBuy = not AH_Helper.bDBClickFastBuy end,},
@@ -1356,7 +1371,7 @@ function AH_Helper.GetItemTip(hItem)
 		local nItemCountInBank = nItemCountTotal - nItemCountInPackage
 
 		szTip = szTip .. GetFormatText(L("STR_TIP_TOTAL"), 101) .. GetFormatText(nItemCountTotal, 162)
-		szTip = szTip .. GetFormatText(L("STR_TIP_BAG"), 101) .. GetFormatText(nItemCountInPackage, 162) .. GetFormatText(L("STR_TIP_BANk"), 101) .. GetFormatText(nItemCountInBank, 162)
+		szTip = szTip .. GetFormatText(L("STR_TIP_BAGANDBANK"), 101) .. GetFormatText(nItemCountInPackage, 162) .. GetFormatText("/", 162) .. GetFormatText(nItemCountInBank, 162)
 
 		--配方
 		if item.nGenre == ITEM_GENRE.MATERIAL then
