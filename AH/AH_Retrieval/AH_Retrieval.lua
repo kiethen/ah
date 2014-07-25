@@ -12,6 +12,8 @@ AH_Retrieval = {
 
 	--πÂ Ø
 	szCurMap = L("STR_RETRIEVAL_DEFAULTMAP"),
+	
+	szCurPos = "",
 
 	--ŒÂ≤  Ø
 	tLastDiamondData = {
@@ -1014,6 +1016,7 @@ function AH_Retrieval.SelectFilter(frame)
 		local m = {
 			szOption = v,
 			fnAction = function()
+				AH_Retrieval.szCurPos = v
 				hText:SetText(v)
 				local szKey = tExpandItemType.szSubType and tExpandItemType.szSubType .. " " .. v or v
 				AH_Retrieval.OnSearchType(frame, tExpandItemType.szType, szKey)
@@ -1034,6 +1037,8 @@ function AH_Retrieval.HideAndShowFilter(frame, bShow)
 		imgBg:Show()
 		txtFilter:Show()
 		btnFilter:Show()
+		txtFilter:SetText(L("STR_RETRIEVAL_POSITION"))
+		AH_Retrieval.szCurPos = ""
 	else
 		imgBg:Hide()
 		txtFilter:Hide()
@@ -1066,7 +1071,7 @@ function AH_Retrieval.GenerateMenu(menu, recipe)
 							AH_Retrieval.OnCastProfessionSkill(nCraftID, nRecipeID, nSubMakeCount)
 						end,
 						fnMouseEnter = function()
-							AH_Helper.OutputTip(L("STR_RETRIEVAL_MAKETIPS"))
+							AH_Library.OutputTip(L("STR_RETRIEVAL_MAKETIPS"))
 						end,
 					}
 					table.insert(m0, m_0)
@@ -1721,7 +1726,7 @@ function AH_Retrieval.OnItemLButtonClick()
 		AH_Retrieval.Selected(frame, this)
 		AH_Retrieval.UpdateContent(frame)
 		PlaySound(SOUND.UI_SOUND, g_sound.Button)
-		if AuctionPanel.IsOpened() then
+		if AuctionPanel.IsOpened() and AH_Helper then
 			AH_Helper.UpdateList(this.szName, false)
 		end
 	elseif this.bEnchant then
@@ -1756,8 +1761,8 @@ function AH_Retrieval.OnItemLButtonClick()
 		local szSubType = this:Lookup("Text_CList01"):GetText()
 		tExpandItemType.szSubType = szSubType
 		AH_Retrieval.UpdateItemTypeList(this:GetRoot())
+		szSubType = (AH_Retrieval.szCurPos == "") and szSubType or (szSubType .. " " .. AH_Retrieval.szCurPos)
 		AH_Retrieval.OnSearchType(frame, tExpandItemType.szType, szSubType)
-		frame:Lookup("PageSet_Main/Page_Craft"):Lookup("", ""):Lookup("Text_CFilter"):SetText(L("STR_RETRIEVAL_POSITION"))
 	elseif szName == "Box_DType1Item" or szName == "Box_DType2Item" then
 		if not this:IsEmpty() then
 			if IsCtrlKeyDown() then

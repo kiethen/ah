@@ -66,7 +66,9 @@ function AH_Tip.OnUpdate()
 			local hSplit = frame:Lookup("Btn_Split")
 			--hSplit:Lookup("","Text_Split"):SetText(L("STR_TIP_STACK"))
 			hSplit.OnRButtonClick = function()
-				AH_Spliter.StackItem()
+				if AH_Spliter then
+					AH_Spliter.StackItem()
+				end
 			end
 			hSplit.OnMouseEnter = function()
 				local x, y = this:GetAbsPos()
@@ -184,7 +186,7 @@ function AH_Tip.GetBagItemTip(box)
 
 		local szKey = (item.nGenre == ITEM_GENRE.BOOK) and GetItemNameByItem(item) or item.nUiId
 
-		local v = AH_Helper.tItemPrice[szKey]
+		local v = AH_Library.tItemPrice[szKey]
 		if v and v[1] then
 			if MoneyOptCmp(v[1], PRICE_LIMITED) ~= 0 then
 				szTip = szTip .. GetFormatText("\n" .. L("STR_TIP_PRICE"), 157) .. GetMoneyTipText(v[1], 106)

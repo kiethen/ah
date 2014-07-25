@@ -8,6 +8,7 @@ AH_MailBank = {
 	tItemCache = {},
 	tSendCache = {},
 	tMoneyCache = {},
+	tMoneyPayCache = {},
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\mail.jx3dat",
 	szCurRole = nil,
 	nCurIndex = 1,
@@ -18,6 +19,7 @@ AH_MailBank = {
 	bMail = true,
 	dwMailNpcID = nil,
 	szReceiver = nil,
+	bPay = false,
 }
 
 local ipairs = ipairs
@@ -384,16 +386,29 @@ function AH_MailBank.OnUpdate()
 							nCount = (nCount == "") and 1 or tonumber(nCount)
 							table.insert(AH_MailBank.tSendCache, {nUiId, nCount})
 						end
+					end	
+					--付费信件
+					local bPay = page:Lookup("CheckBox_PayMail"):IsCheckBoxChecked()
+					AH_MailBank.bPay = bPay
+					if bPay then
+						local szGoldPay = page:Lookup("Edit_GoldPay"):GetText()
+						local szSilverPay = page:Lookup("Edit_SilverPay"):GetText()
+						local szCopperPay = page:Lookup("Edit_CopperPay"):GetText()
+						AH_MailBank.tMoneyPayCache = {
+							nGoldPay = (szGoldPay ~= "") and tonumber(szGoldPay) or 0,
+							nSilverPay = (szSilverPay ~= "") and tonumber(szSilverPay) or 0,
+							nCopperPay = (szCopperPay ~= "") and tonumber(szCopperPay) or 0,
+						}
+					else	--寄出金钱
+						local szGold = page:Lookup("Edit_Gold"):GetText()
+						local szSilver = page:Lookup("Edit_Silver"):GetText()
+						local szCopper = page:Lookup("Edit_Copper"):GetText()
+						AH_MailBank.tMoneyCache = {
+							nGold = (szGold ~= "") and tonumber(szGold) or 0,
+							nSilver = (szSilver ~= "") and tonumber(szSilver) or 0,
+							nCopper = (szCopper ~= "") and tonumber(szCopper) or 0,
+						}
 					end
-					--金钱
-					local szGold = page:Lookup("Edit_Gold"):GetText()
-					local szSilver = page:Lookup("Edit_Silver"):GetText()
-					local szCopper = page:Lookup("Edit_Copper"):GetText()
-					AH_MailBank.tMoneyCache = {
-						nGold = (szGold ~= "") and tonumber(szGold) or 0,
-						nSilver = (szSilver~= "") and tonumber(szSilver) or 0,
-						nCopper = (szCopper ~= "") and tonumber(szCopper) or 0,
-					}
 				end
 			end
 
@@ -477,13 +492,20 @@ end
 
 -- 取附件
 function AH_MailBank.TakeMailItemToBag(fnAction, nCount)
+	--限制距离取件
+	if AH_MailBank.dwMailNpcID and GetNpc(AH_MailBank.dwMailNpcID) then
+		local nDist = GetCharacterDistance(UI_GetClientPlayerID(), AH_MailBank.dwMailNpcID) / 64
+		if nDist > 4 then
+			return
+		end
+	end
 	local tFreeBoxList = AH_Library.GetPlayerBagFreeBoxList()
 	if nCount > #tFreeBoxList then
 		AH_Library.Message(L("STR_MAILBANK_TIP2"))
 		OutputWarningMessage("MSG_NOTICE_YELLOW", L("STR_MAILBANK_TIP2"), 2)
 		return
 	end
-	fnAction()
+	pcall(fnAction)
 end
 
 -- 重新筛选
@@ -573,10 +595,17 @@ function AH_MailBank.OnExchangeItem()
 			end
 		end
 	end
-	--放置金钱
-	for k, v in ipairs({"Edit_Gold", "Edit_Silver", "Edit_Copper"}) do
-		local szKey = string.format("n%s", v:match("Edit_(%a+)"))
-		page:Lookup(v):SetText(AH_MailBank.tMoneyCache[szKey])
+	if AH_MailBank.bPay then	--付费邮件
+		page:Lookup("CheckBox_PayMail"):Check(true)
+		for k, v in ipairs({"Edit_GoldPay", "Edit_SilverPay", "Edit_CopperPay"}) do
+			local szKey = string.format("n%s", v:match("Edit_(%a+)"))
+			page:Lookup(v):SetText(AH_MailBank.tMoneyPayCache[szKey])
+		end
+	else	--放置金钱
+		for k, v in ipairs({"Edit_Gold", "Edit_Silver", "Edit_Copper"}) do
+			local szKey = string.format("n%s", v:match("Edit_(%a+)"))
+			page:Lookup(v):SetText(AH_MailBank.tMoneyCache[szKey])
+		end
 	end
 end
 ------------------------------------------------------------

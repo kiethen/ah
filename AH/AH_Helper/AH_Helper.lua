@@ -42,7 +42,7 @@ AH_Helper = {
 	tItemPrice = {},
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
-	szVersion = "3.0.1",
+	szVersion = "3.0.2",
 }
 
 
@@ -72,7 +72,7 @@ RegisterCustomData("AH_Helper.bPricePercentage")
 RegisterCustomData("AH_Helper.bFastBid")
 RegisterCustomData("AH_Helper.bFastBuy")
 RegisterCustomData("AH_Helper.bFastCancel")
-RegisterCustomData("AH_Helper.bDBCtrlSell")
+--RegisterCustomData("AH_Helper.bDBCtrlSell")
 RegisterCustomData("AH_Helper.tItemHistory")
 RegisterCustomData("AH_Helper.tItemFavorite")
 RegisterCustomData("AH_Helper.tBlackList")
@@ -341,14 +341,14 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 		local szKey = (item.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or item.nUiId
 		hItem.szKey = szKey
 
-		if AH_Helper.tItemPrice[szKey] == nil or AH_Helper.tItemPrice[szKey][2] ~= AH_Helper.nVersion then
-			AH_Helper.tItemPrice[szKey] = {PRICE_LIMITED, AH_Helper.nVersion}
+		if AH_Library.tItemPrice[szKey] == nil or AH_Library.tItemPrice[szKey][2] ~= AH_Helper.nVersion then
+			AH_Library.tItemPrice[szKey] = {PRICE_LIMITED, AH_Helper.nVersion}
 		end
 		if MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) ~= 0 then
 			local tBuyPrice = MoneyOptDiv(hItem.tBuyPrice, hItem.nCount)
 			--×îµÍÒ»¿Ú
-			if MoneyOptCmp(AH_Helper.tItemPrice[szKey][1], tBuyPrice) == 1 then
-				AH_Helper.tItemPrice[szKey][1] = tBuyPrice
+			if MoneyOptCmp(AH_Library.tItemPrice[szKey][1], tBuyPrice) == 1 then
+				AH_Library.tItemPrice[szKey][1] = tBuyPrice
 				if bAutoSearch then
 					local szMoney = GetMoneyText((tBuyPrice), "font=10")
 					local szColor = GetItemFontColorByQuality(item.nQuality, true)
@@ -457,7 +457,7 @@ function AuctionPanel.UpdateSaleInfo(frame, bDefault)
 		local textItemName = handle:Lookup("Text_ItemName")
 		if not box:IsEmpty() then
 			local szItemName = textItemName:GetText()
-			if not AH_Helper.tItemPrice[szItemName] then
+			if not AH_Library.tItemPrice[szItemName] then
 				local szText = textTime:GetText()
 				if szText ~= AH_Helper.szDefaultTime then
 					textTime:SetText(AH_Helper.szDefaultTime)
@@ -497,7 +497,7 @@ function AuctionPanel.GetItemSellInfo(szItemName)
 			local tPrice = {tTempSellPrice[szKey]}
 			return GetSellInfo(szKey, tPrice)
 		else
-			for k, v in pairs(AH_Helper.tItemPrice) do
+			for k, v in pairs(AH_Library.tItemPrice) do
 				if szKey == k and MoneyOptCmp(v[1], PRICE_LIMITED) ~= 0 then
 					if type(szKey) == "string" then
 						return GetSellInfo(szKey, v)
@@ -523,9 +523,9 @@ end
 function AuctionPanel.OnMouseEnter()
 	local szName = this:GetName()
 	if szName == "Btn_Sale" then
-		AH_Helper.OutputTip(L("STR_HELPER_TIP1"))
+		AH_Library.OutputTip(L("STR_HELPER_TIP1"))
 	elseif szName == "Btn_History" then
-		AH_Helper.OutputTip(L("STR_HELPER_TIP2"))
+		AH_Library.OutputTip(L("STR_HELPER_TIP2"))
 	end
 end
 
@@ -996,16 +996,22 @@ function AH_Helper.AddWidget(frame)
 			hBtnSplit.OnLButtonClick = function()
 				local x, y = this:GetAbsPos()
 				local w, h = this:GetSize()
-				AH_Spliter.OnSplitBoxItem({x, y, w, h})
+				if AH_Spliter then
+					AH_Spliter.OnSplitBoxItem({x, y, w, h})
+				end
 			end
 			hBtnSplit.OnRButtonClick = function()
-				AH_Spliter.StackItem()
+				if AH_Spliter then
+					AH_Spliter.StackItem()
+				end
 			end
 
 			local hBtnRetrieval = hWndSide:Lookup("Btn_Retrieval")
 			hBtnRetrieval:Lookup("", ""):Lookup("Text_Retrieval"):SetText(L("STR_HELPER_TEXTRETRIEVAL"))
 			hBtnRetrieval.OnLButtonClick = function()
-				AH_Retrieval.OpenPanel()
+				if AH_Retrieval then
+					AH_Retrieval.OpenPanel()
+				end
 			end
 
 			local hBtnOption = hWndSide:Lookup("Btn_Option")
@@ -1015,22 +1021,22 @@ function AH_Helper.AddWidget(frame)
 				{
 					{szOption = L("STR_HELPER_VERSION", AH_Helper.szVersion), fnDisable = function() return true end},
 					{ bDevide = true },
-					{szOption = L("STR_HELPER_FILTERRECIPE"), bCheck = true, bChecked = AH_Helper.bFilterRecipe, fnAction = function() AH_Helper.bFilterRecipe = not AH_Helper.bFilterRecipe end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_FILTERRECIPETIPS")) end,},
-					{szOption = L("STR_HELPER_FILTERBOOK"), bCheck = true,bChecked = AH_Helper.bFilterBook,fnAction = function()AH_Helper.bFilterBook = not AH_Helper.bFilterBook end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_FILTERBOOKTIPS")) end,},
+					{szOption = L("STR_HELPER_FILTERRECIPE"), bCheck = true, bChecked = AH_Helper.bFilterRecipe, fnAction = function() AH_Helper.bFilterRecipe = not AH_Helper.bFilterRecipe end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_FILTERRECIPETIPS")) end,},
+					{szOption = L("STR_HELPER_FILTERBOOK"), bCheck = true,bChecked = AH_Helper.bFilterBook,fnAction = function()AH_Helper.bFilterBook = not AH_Helper.bFilterBook end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_FILTERBOOKTIPS")) end,},
 					{ bDevide = true },
-					{szOption = L("STR_HELPER_MAXHISTORY"), fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_MAXHISTORYTIPS")) end,
+					{szOption = L("STR_HELPER_MAXHISTORY"), fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_MAXHISTORYTIPS")) end,
 						{szOption = "5", bMCheck = true, bChecked = (AH_Helper.nMaxHistory == 5), fnAction = function() AH_Helper.nMaxHistory = 5 end,},
 						{szOption = "10", bMCheck = true, bChecked = (AH_Helper.nMaxHistory == 10), fnAction = function() AH_Helper.nMaxHistory = 10 end,},
 						{szOption = "15", bMCheck = true, bChecked = (AH_Helper.nMaxHistory == 15), fnAction = function() AH_Helper.nMaxHistory = 15 end,},
 						{szOption = "20", bMCheck = true, bChecked = (AH_Helper.nMaxHistory == 20), fnAction = function() AH_Helper.nMaxHistory = 20 end,},
 					},
 					{ bDevide = true },
-					{szOption = L("STR_HELPER_SELLTIME"), fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_SELLTIMETIPS")) end,
+					{szOption = L("STR_HELPER_SELLTIME"), fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_SELLTIMETIPS")) end,
 						{szOption = L("STR_HELPER_12HOUR"), bMCheck = true, bChecked = (AH_Helper.szDefaultTime == L("STR_HELPER_12HOUR")), fnAction = function() AH_Helper.szDefaultTime = L("STR_HELPER_12HOUR") end,},
 						{szOption = L("STR_HELPER_24HOUR"), bMCheck = true, bChecked = (AH_Helper.szDefaultTime == L("STR_HELPER_24HOUR")), fnAction = function() AH_Helper.szDefaultTime = L("STR_HELPER_24HOUR") end,},
 						{szOption = L("STR_HELPER_48HOUR"), bMCheck = true, bChecked = (AH_Helper.szDefaultTime == L("STR_HELPER_48HOUR")), fnAction = function() AH_Helper.szDefaultTime = L("STR_HELPER_48HOUR") end,},
 					},
-					{szOption = L("STR_HELPER_AUTOMATICSPREAD"), bCheck = true, bChecked = AH_Helper.bLowestPrices, fnAction = function() AH_Helper.bLowestPrices = not AH_Helper.bLowestPrices end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_AUTOMATICSPREADTIPS")) end,
+					{szOption = L("STR_HELPER_AUTOMATICSPREAD"), bCheck = true, bChecked = AH_Helper.bLowestPrices, fnAction = function() AH_Helper.bLowestPrices = not AH_Helper.bLowestPrices end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_AUTOMATICSPREADTIPS")) end,
 						{szOption = L("STR_HELPER_DISCOUNT"), bCheck = true, bChecked = AH_Helper.bPricePercentage, fnDisable = function() return not AH_Helper.bLowestPrices end, fnAction = function() AH_Helper.bPricePercentage = not AH_Helper.bPricePercentage end,
 							{szOption = L("STR_HELPER_MODIFY", AH_Helper.nPricePercentage), fnDisable = function() return not AH_Helper.bPricePercentage end, fnAction = function()
 									GetUserInput(L("STR_HELPER_INPUTDISCOUNT"), function(szText)
@@ -1050,25 +1056,25 @@ function AH_Helper.AddWidget(frame)
 						--{szOption = L("STR_HELPER_DBCTRLSELL"), bCheck = true, bChecked = AH_Helper.bDBCtrlSell, fnAction = function() AH_Helper.bDBCtrlSell = not AH_Helper.bDBCtrlSell end,},
 					},
 					{ bDevide = true },
-					--[[{szOption = L("STR_HELPER_NOALLPROMPT"), bCheck = true, bChecked = AH_Helper.bNoAllPrompt, fnAction = function() AH_Helper.bNoAllPrompt = not AH_Helper.bNoAllPrompt end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_NOALLPROMPTTIPS")) end,
+					--[[{szOption = L("STR_HELPER_NOALLPROMPT"), bCheck = true, bChecked = AH_Helper.bNoAllPrompt, fnAction = function() AH_Helper.bNoAllPrompt = not AH_Helper.bNoAllPrompt end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_NOALLPROMPTTIPS")) end,
 						{szOption = L("STR_HELPER_NOSELLNOTICE"), bCheck = true, bChecked = AH_Helper.bSellNotice, fnAction = function() AH_Helper.bSellNotice = not AH_Helper.bSellNotice end,},
 						{szOption = L("STR_HELPER_DBCTRLSELL"), bCheck = true, bChecked = AH_Helper.bDBCtrlSell, fnAction = function() AH_Helper.bDBCtrlSell = not AH_Helper.bDBCtrlSell end,},
 					},
 					{ bDevide = true },]]
-					{szOption = L("STR_HELPER_FASTSELL"), bCheck = false, bChecked = AH_Helper.bDBCtrlSell, fnAction = function() AH_Helper.bDBCtrlSell = not AH_Helper.bDBCtrlSell end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_DBCTRLSELL")) end,},
-					{szOption = L("STR_HELPER_FASTBID"), bCheck = true, bChecked = AH_Helper.bFastBid, fnAction = function() AH_Helper.bFastBid = not AH_Helper.bFastBid end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_FASTBIDTIPS")) end,},
-					{szOption = L("STR_HELPER_FASTBUY"), bCheck = true, bChecked = AH_Helper.bFastBuy, fnAction = function() AH_Helper.bFastBuy = not AH_Helper.bFastBuy end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_FASTBUYTIPS")) end,
+					{szOption = L("STR_HELPER_FASTSELL"), bCheck = false, bChecked = AH_Helper.bDBCtrlSell, fnAction = function() AH_Helper.bDBCtrlSell = not AH_Helper.bDBCtrlSell end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_DBCTRLSELL")) end,},
+					{szOption = L("STR_HELPER_FASTBID"), bCheck = true, bChecked = AH_Helper.bFastBid, fnAction = function() AH_Helper.bFastBid = not AH_Helper.bFastBid end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_FASTBIDTIPS")) end,},
+					{szOption = L("STR_HELPER_FASTBUY"), bCheck = true, bChecked = AH_Helper.bFastBuy, fnAction = function() AH_Helper.bFastBuy = not AH_Helper.bFastBuy end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_FASTBUYTIPS")) end,
 						{szOption = L("STR_HELPER_DBCLICKTYPE"), bCheck = true, bChecked = AH_Helper.bDBClickFastBuy, fnAction = function() AH_Helper.bDBClickFastBuy = not AH_Helper.bDBClickFastBuy end,},
 					},
-					{szOption = L("STR_HELPER_FASTCANCEL"), bCheck = true, bChecked = AH_Helper.bFastCancel, fnAction = function() AH_Helper.bFastCancel = not AH_Helper.bFastCancel end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_FASTCANCELTIPS")) end,
+					{szOption = L("STR_HELPER_FASTCANCEL"), bCheck = true, bChecked = AH_Helper.bFastCancel, fnAction = function() AH_Helper.bFastCancel = not AH_Helper.bFastCancel end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_FASTCANCELTIPS")) end,
 						{szOption = L("STR_HELPER_DBCLICKTYPE"), bCheck = true, bChecked = AH_Helper.bDBClickFastCancel, fnAction = function() AH_Helper.bDBClickFastCancel = not AH_Helper.bDBClickFastCancel end,},
 					},
 					{ bDevide = true },
-					{szOption = L("STR_HELPER_AUTOSEARCH"), bCheck = true, bChecked = AH_Helper.bAutoSearch, fnAction = function() AH_Helper.bAutoSearch = not AH_Helper.bAutoSearch end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_AUTOSEARCHTIPS")) end,},
-					{szOption = L("STR_HELPER_FORMATMONEY"), bCheck = true, bChecked = AH_Helper.bFormatMoney, fnAction = function() AH_Helper.bFormatMoney = not AH_Helper.bFormatMoney end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_FORMATMONEYTIPS")) end,},
-					{szOption = L("STR_HELPER_SHOWTIPEX"), bCheck = true, bChecked = AH_Tip.bShowTipEx, fnAction = function() AH_Tip.bShowTipEx = not AH_Tip.bShowTipEx end, fnMouseEnter = function() AH_Helper.OutputTip(L("STR_HELPER_SHOWTIPEXTIPS")) end,},
+					{szOption = L("STR_HELPER_AUTOSEARCH"), bCheck = true, bChecked = AH_Helper.bAutoSearch, fnAction = function() AH_Helper.bAutoSearch = not AH_Helper.bAutoSearch end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_AUTOSEARCHTIPS")) end,},
+					{szOption = L("STR_HELPER_FORMATMONEY"), bCheck = true, bChecked = AH_Helper.bFormatMoney, fnAction = function() AH_Helper.bFormatMoney = not AH_Helper.bFormatMoney end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_FORMATMONEYTIPS")) end,},
+					{szOption = L("STR_HELPER_SHOWTIPEX"), bCheck = true, bChecked = AH_Tip.bShowTipEx or false, fnAction = function() AH_Tip.bShowTipEx = not AH_Tip.bShowTipEx end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_SHOWTIPEXTIPS")) end,},
 					{ bDevide = true },
-					{szOption = L("STR_HELPER_RESETPRICE"), fnAction = function() AH_Helper.tItemPrice = {} AH_Library.Message(L("STR_HELPER_RESETPRICETIPS")) end,},
+					{szOption = L("STR_HELPER_RESETPRICE"), fnAction = function() AH_Library.tItemPrice = {} AH_Library.Message(L("STR_HELPER_RESETPRICETIPS")) end,},
 				}
 				PopupMenu(menu)
 			end
@@ -1080,12 +1086,6 @@ function AH_Helper.AddWidget(frame)
 	if nW < 1018 then
 		frame:SetSize(nW + 56, nH)
 	end
-end
-
-function AH_Helper.OutputTip(szText, nFont)
-	local x, y = this:GetAbsPos()
-	local w, h = this:GetSize()
-	OutputTip(GetFormatText(szText, nFont or 18), 800, {x, y, w, h})
 end
 
 function AH_Helper.GetPrediction(hItem)
@@ -1178,17 +1178,17 @@ end
 
 local function IsSameSellItem(item1, item2)
 	if item1.nGenre == ITEM_GENRE.BOOK then
-		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and item1.szName == item2.szName then
+		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and item1.szName == item2.szName and item1.nStackNum == item2.nStackNum then
 			return true
 		end
 		return false
 	elseif item1.nGenre == ITEM_GENRE.MATERIAL and item1.nSub == 5 then
-		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and item1.nSub == item2.nSub then
+		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and item1.nSub == item2.nSub and item1.nStackNum == item2.nStackNum then
 			return true
 		end
 		return false
 	elseif item1.nGenre == ITEM_GENRE.COLOR_DIAMOND then
-		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre then
+		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and item1.nStackNum == item2.nStackNum then
 			local szName1, szName2 = GetItemNameByItem(item1), GetItemNameByItem(item2)
 			if string.sub(szName1, -3, -2) == string.sub(szName2, -3, -2) then
 				return true
@@ -1465,16 +1465,16 @@ AuctionPanel = protect(AuctionPanel)
 
 RegisterEvent("LOGIN_GAME", function()
 	if IsFileExist(AH_Helper.szDataPath) then
-		AH_Helper.tItemPrice = LoadLUAData(AH_Helper.szDataPath)
+		AH_Library.tItemPrice = LoadLUAData(AH_Helper.szDataPath)
 	end
 end)
 
 RegisterEvent("GAME_EXIT", function()
-	SaveLUAData(AH_Helper.szDataPath, AH_Helper.tItemPrice)
+	SaveLUAData(AH_Helper.szDataPath, AH_Library.tItemPrice)
 end)
 
 RegisterEvent("PLAYER_EXIT_GAME", function()
-	SaveLUAData(AH_Helper.szDataPath, AH_Helper.tItemPrice)
+	SaveLUAData(AH_Helper.szDataPath, AH_Library.tItemPrice)
 end)
 
 Hotkey.AddBinding("AH_Retrieval_Open", L("STR_RETRIEVAL_TITLE"), L("STR_HELPER_HELPER"), function() AH_Retrieval.OpenPanel() end, nil)

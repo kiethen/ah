@@ -5,6 +5,8 @@
 
 AH_Library = AH_Library or {}
 
+AH_Library.tItemPrice = {}
+
 local ipairs = ipairs
 local pairs = pairs
 
@@ -593,6 +595,12 @@ function AH_Library.GetPlayerBagFreeBoxList()
 		end
 	end
 	return tBoxTable
+end
+
+function AH_Library.OutputTip(szText, nFont)
+	local x, y = this:GetAbsPos()
+	local w, h = this:GetSize()
+	OutputTip(GetFormatText(szText, nFont or 18), 800, {x, y, w, h})
 end
 
 
