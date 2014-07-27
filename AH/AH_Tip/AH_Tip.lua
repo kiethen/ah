@@ -4,6 +4,8 @@
 ------------------------------------------------------
 local L = AH_Library.LoadLangPack()
 
+_G["AH_Tip_Loaded"] = true
+
 AH_Tip = {
 	szItemTip = nil,
 	szBagItemTip = nil,
@@ -63,18 +65,18 @@ function AH_Tip.OnUpdate()
 			else
 				AH_Tip.UpdateNormal(frame)
 			end
-			local hSplit = frame:Lookup("Btn_Split")
-			--hSplit:Lookup("","Text_Split"):SetText(L("STR_TIP_STACK"))
-			hSplit.OnRButtonClick = function()
-				if AH_Spliter then
+			if _G["AH_Spliter_Loaded"] then
+				local hSplit = frame:Lookup("Btn_Split")
+				--hSplit:Lookup("","Text_Split"):SetText(L("STR_TIP_STACK"))
+				hSplit.OnRButtonClick = function()
 					AH_Spliter.StackItem()
 				end
-			end
-			hSplit.OnMouseEnter = function()
-				local x, y = this:GetAbsPos()
-				local w, h = this:GetSize()
-				local szTip = GetFormatText(L("STR_TIP_SPLITTIP"), 162)
-				OutputTip(szTip, 800, {x, y, w, h})
+				hSplit.OnMouseEnter = function()
+					local x, y = this:GetAbsPos()
+					local w, h = this:GetSize()
+					local szTip = GetFormatText(L("STR_TIP_SPLITTIP"), 162)
+					OutputTip(szTip, 800, {x, y, w, h})
+				end
 			end
 			bBagHooked = true
 		elseif not frame:IsVisible() then
@@ -144,25 +146,27 @@ function AH_Tip.HookBagItemBox(box)
 			end
 		end
 		--Êó±êµã»÷
-		if not box.SetObjectStaringOrg then
-			box.SetObjectStaringOrg = box.SetObjectStaring
-		end
-		if not box.SetObjectPressedOrg then
-			box.SetObjectPressedOrg = box.SetObjectPressed
-		end
-		local bStarting = true
-		box.SetObjectStaring = function(h, bStart)
-			box:SetObjectStaringOrg(bStart)
-			if bStart == false then
-				bStarting = false
+		if _G["AH_Spliter_Loaded"] then
+			if not box.SetObjectStaringOrg then
+				box.SetObjectStaringOrg = box.SetObjectStaring
 			end
-		end
-		box.SetObjectPressed = function(h, bPress)
-			if IsAltKeyDown() and not bStarting and bPress == 1 then
-				AH_Spliter.OnExchangeBoxItem(nil, box, nil, false)
+			if not box.SetObjectPressedOrg then
+				box.SetObjectPressedOrg = box.SetObjectPressed
 			end
-			box:SetObjectPressedOrg(bPress)
-			bStarting = true
+			local bStarting = true
+			box.SetObjectStaring = function(h, bStart)
+				box:SetObjectStaringOrg(bStart)
+				if bStart == false then
+					bStarting = false
+				end
+			end
+			box.SetObjectPressed = function(h, bPress)
+				if IsAltKeyDown() and not bStarting and bPress == 1 then
+					AH_Spliter.OnExchangeBoxItem(nil, box, nil, false)
+				end
+				box:SetObjectPressedOrg(bPress)
+				bStarting = true
+			end
 		end
 	end
 end

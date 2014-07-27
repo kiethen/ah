@@ -4,6 +4,8 @@
 ------------------------------------------------------
 local L = AH_Library.LoadLangPack()
 
+_G["AH_Retrieval_Loaded"] = true
+
 AH_Retrieval = {
 	--ºº“’
 	nCurCraftID = -1,
@@ -1726,7 +1728,7 @@ function AH_Retrieval.OnItemLButtonClick()
 		AH_Retrieval.Selected(frame, this)
 		AH_Retrieval.UpdateContent(frame)
 		PlaySound(SOUND.UI_SOUND, g_sound.Button)
-		if AuctionPanel.IsOpened() and AH_Helper then
+		if AuctionPanel.IsOpened() and _G["AH_Helper_Loaded"] then
 			AH_Helper.UpdateList(this.szName, false)
 		end
 	elseif this.bEnchant then
@@ -1770,7 +1772,7 @@ function AH_Retrieval.OnItemLButtonClick()
 				EditBox_AppendLinkItemInfo(dwVer, nTabType, nIndex)
 				return
 			end
-			if AuctionPanel.IsOpened() then
+			if AuctionPanel.IsOpened() and _G["AH_Helper_Loaded"] then
 				AH_Helper.UpdateList(this.szName, false)
 			end
 		end
@@ -1790,7 +1792,7 @@ function AH_Retrieval.OnItemLButtonClick()
 			EditBox_AppendLinkItemInfo(GLOBAL.CURRENT_ITEM_VERSION, 5, this.nIndex)
 			return
 		end
-		if AuctionPanel.IsOpened() then
+		if AuctionPanel.IsOpened() and _G["AH_Helper_Loaded"] then
 			AH_Helper.UpdateList(Table_GetItemName(this.nUiId), false)
 		end
 	elseif this.bStone then

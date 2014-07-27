@@ -4,6 +4,8 @@
 ------------------------------------------------------
 local L = AH_Library.LoadLangPack()
 
+_G["AH_MailBank_Loaded"] = true
+
 AH_MailBank = {
 	tItemCache = {},
 	tSendCache = {},
@@ -55,9 +57,17 @@ function AH_MailBank.GetPageMailData(tItemCache)
 	for k, v in ipairs(tItemCache) do
 		tItems[nIndex] = tItems[nIndex] or {}
 		table.insert(tItems[nIndex], v)
-		nIndex = math.ceil(k / 98)
+		nIndex = math.ceil(k / 97)
 	end
 	return tItems, nIndex
+end
+
+-- 是否离线邮件
+local function IsOfflineMail()
+	if GetClientPlayer().szName ~= AH_MailBank.szCurRole or not AH_MailBank.bMail then
+		return true
+	end
+	return false
 end
 
 -- 按页加载该角色的物品数据
@@ -70,6 +80,7 @@ function AH_MailBank.LoadMailData(frame, szName, nIndex)
 	local tItemCache = AH_MailBank.bShowNoReturn and AH_MailBank.SaveItemCache(false) or AH_MailBank.tItemCache[szName]
 	local tCache, nMax = AH_MailBank.GetPageMailData(tItemCache)
 	local i = 0
+	nIndex = math.max(1, nIndex)
 	for k, v in ipairs(tCache[nIndex] or {}) do
 		if v.szName == "money" then
 			local img = hBg:Lookup(k - 1)
@@ -96,7 +107,7 @@ function AH_MailBank.LoadMailData(frame, szName, nIndex)
 			box:SetObjectIcon(Table_GetItemIconID(v.nUiId))
 			box:SetAlpha(255)
 			box:SetOverTextFontScheme(0, 15)
-			if AH_MailBank.bMail then
+			if not IsOfflineMail() then
 				local item = GetItem(v.dwID)
 				if item then
 					UpdateItemBoxExtend(box, item.nGenre, item.nQuality, item.nStrengthLevel)
@@ -161,9 +172,9 @@ function AH_MailBank.LoadMailData(frame, szName, nIndex)
 	else
 		hType:SetText(L("STR_MAILBANK_WITHIN"))
 	end
-	frame:Lookup("Btn_Filter"):Enable(AH_MailBank.bMail)
-	frame:Lookup("Check_NotReturn"):Enable(AH_MailBank.bMail)
-	local tColor = AH_MailBank.bMail and {255, 255, 255} or {180, 180, 180}
+	frame:Lookup("Btn_Filter"):Enable(not IsOfflineMail())
+	frame:Lookup("Check_NotReturn"):Enable(not IsOfflineMail())
+	local tColor = (not IsOfflineMail()) and {255, 255, 255} or {180, 180, 180}
 	frame:Lookup("", ""):Lookup("Text_Filter"):SetFontColor(unpack(tColor))
 	frame:Lookup("", ""):Lookup("Text_NotReturn"):SetFontColor(unpack(tColor))
 end
@@ -240,9 +251,7 @@ function AH_MailBank.SaveItemCache(bAll)
 	local tItems, tCount, tMailIDs, nMoney = {}, {}, {}, 0
 	for _, dwID in ipairs(tMail) do
 		local mail = MailClient.GetMailInfo(dwID)
-		if mail.bGotContentFlag then
-			mail.Read()
-		else
+		if mail then
 			mail.RequestContent(AH_MailBank.dwMailNpcID)
 		end
 		if bAll or (not bAll and not (mail.GetType() == MAIL_TYPE.PLAYER and (mail.bMoneyFlag or mail.bItemFlag))) then
@@ -912,18 +921,23 @@ function AH_MailBank.OnItemMouseEnter()
 				OutputItemTip(UI_OBJECT_ITEM_ONLY_ID, dwID, nil, nil, {x, y, w, h})
 			else
 				local item = GetItem(d.dwID)
-				if item and AH_MailBank.bMail then
+				if item and not IsOfflineMail() then
 					local szName = GetItemNameByItem(item)
 					local szTip = "<Text>text=" .. EncodeComponentsString(szName) .. " font=60" .. GetItemFontColorByQuality(item.nQuality, true) .. " </text>"
 					local MailClient = GetMailClient()
 					for k, v in ipairs(d.tMailIDs) do
 						local mail = MailClient.GetMailInfo(v)
-						szTip = szTip .. GetFormatText(string.format("\n%s", mail.szSenderName), 164)
-						szTip = szTip .. GetFormatText(string.format(" 『%s』", mail.szTitle), 163)
-						local szLeft = AH_MailBank.FormatItemLeftTime(mail.GetLeftTime())
-						szTip = szTip .. GetFormatText(L("STR_MAILBANK_LEFTTIME", szLeft), 162)
-						local nCount = AH_MailBank.GetMailItem(mail)[szName][5]
-						szTip = szTip .. GetFormatText(L("STR_MAILBANK_NUMBER", nCount), 162)
+						if mail then
+							szTip = szTip .. GetFormatText(string.format("\n%s", mail.szSenderName), 164)
+							szTip = szTip .. GetFormatText(string.format(" 『%s』", mail.szTitle), 163)
+							local szLeft = AH_MailBank.FormatItemLeftTime(mail.GetLeftTime())
+							szTip = szTip .. GetFormatText(L("STR_MAILBANK_LEFTTIME", szLeft), 162)
+							local nCount = AH_MailBank.GetMailItem(mail)[szName][5]
+							szTip = szTip .. GetFormatText(L("STR_MAILBANK_NUMBER", nCount), 162)
+						else
+							local szTip = GetFormatText(this.szName, 162)
+							OutputTip(szTip, 800, {x, y, w, h})
+						end
 					end
 					OutputTip(szTip, 800, {x, y, w, h})
 				else
@@ -936,11 +950,13 @@ function AH_MailBank.OnItemMouseEnter()
 			local MailClient = GetMailClient()
 			for k, v in ipairs(d.tMailIDs) do
 				local mail = MailClient.GetMailInfo(v)
-				szTip = szTip .. GetFormatText(string.format("\n%s", mail.szSenderName), 164)
-				szTip = szTip .. GetFormatText(string.format(" 『%s』", mail.szTitle), 163)
-				local szLeft = AH_MailBank.FormatItemLeftTime(mail.GetLeftTime())
-				szTip = szTip .. GetFormatText(L("STR_MAILBANK_LEFTTIME", szLeft), 162)
-				szTip = szTip .. GetFormatText(g_tStrings.STR_MAIL_HAVE_MONEY, 162) .. GetMoneyTipText(mail.nMoney, 106)
+				if mail then
+					szTip = szTip .. GetFormatText(string.format("\n%s", mail.szSenderName), 164)
+					szTip = szTip .. GetFormatText(string.format(" 『%s』", mail.szTitle), 163)
+					local szLeft = AH_MailBank.FormatItemLeftTime(mail.GetLeftTime())
+					szTip = szTip .. GetFormatText(L("STR_MAILBANK_LEFTTIME", szLeft), 162)
+					szTip = szTip .. GetFormatText(g_tStrings.STR_MAIL_HAVE_MONEY, 162) .. GetMoneyTipText(mail.nMoney, 106)
+				end
 			end
 			OutputTip(szTip, 800, {x, y, w, h})
 		end

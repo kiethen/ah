@@ -4,6 +4,8 @@
 ------------------------------------------------------
 local L = AH_Library.LoadLangPack()
 
+_G["AH_Spliter_Loaded"] = true
+
 AH_Spliter = {
 	tItemHistory = {},
 }

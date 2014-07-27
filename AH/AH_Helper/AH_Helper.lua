@@ -4,6 +4,8 @@
 ------------------------------------------------------
 local L = AH_Library.LoadLangPack()
 
+_G["AH_Helper_Loaded"] = true
+
 local ipairs = ipairs
 local pairs = pairs
 local tonumber = tonumber
@@ -703,7 +705,9 @@ function AuctionPanel.OnItemMouseEnter()
 	local szName = this:GetName()
 	if szName == "Box_Box" then
 		if not this:IsEmpty() then
-			AH_Tip.szItemTip = AH_Helper.GetItemTip(this)
+			if _G["AH_Tip_Loaded"] then
+				AH_Tip.szItemTip = AH_Helper.GetItemTip(this)
+			end
 			local x, y = this:GetAbsPos()
 			local w, h = this:GetSize()
 			OutputItemTip(UI_OBJECT_ITEM_ONLY_ID, this.nItemID, nil, nil, {x, y, w, h})
@@ -723,7 +727,9 @@ function AuctionPanel.OnItemMouseLeave()
 	local szName = this:GetName()
 	if szName == "Box_Box" then
 		HideTip()
-		AH_Tip.szItemTip = nil
+		if _G["AH_Tip_Loaded"] then
+			AH_Tip.szItemTip = nil
+		end
 	else
 		AH_Helper.OnItemMouseLeaveOrg()
 	end
@@ -993,23 +999,25 @@ function AH_Helper.AddWidget(frame)
 
 			local hBtnSplit = hWndSide:Lookup("Btn_Split")
 			hBtnSplit:Lookup("", ""):Lookup("Text_Split"):SetText(L("STR_HELPER_TEXTSPLIT"))
+			hBtnSplit:Enable(_G["AH_Spliter_Loaded"] or false)
 			hBtnSplit.OnLButtonClick = function()
 				local x, y = this:GetAbsPos()
 				local w, h = this:GetSize()
-				if AH_Spliter then
+				if _G["AH_Spliter_Loaded"] then
 					AH_Spliter.OnSplitBoxItem({x, y, w, h})
 				end
 			end
 			hBtnSplit.OnRButtonClick = function()
-				if AH_Spliter then
+				if _G["AH_Spliter_Loaded"] then
 					AH_Spliter.StackItem()
 				end
 			end
 
 			local hBtnRetrieval = hWndSide:Lookup("Btn_Retrieval")
+			hBtnRetrieval:Enable(_G["AH_Retrieval_Loaded"] or false)
 			hBtnRetrieval:Lookup("", ""):Lookup("Text_Retrieval"):SetText(L("STR_HELPER_TEXTRETRIEVAL"))
 			hBtnRetrieval.OnLButtonClick = function()
-				if AH_Retrieval then
+				if _G["AH_Retrieval_Loaded"] then
 					AH_Retrieval.OpenPanel()
 				end
 			end
@@ -1072,7 +1080,7 @@ function AH_Helper.AddWidget(frame)
 					{ bDevide = true },
 					{szOption = L("STR_HELPER_AUTOSEARCH"), bCheck = true, bChecked = AH_Helper.bAutoSearch, fnAction = function() AH_Helper.bAutoSearch = not AH_Helper.bAutoSearch end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_AUTOSEARCHTIPS")) end,},
 					{szOption = L("STR_HELPER_FORMATMONEY"), bCheck = true, bChecked = AH_Helper.bFormatMoney, fnAction = function() AH_Helper.bFormatMoney = not AH_Helper.bFormatMoney end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_FORMATMONEYTIPS")) end,},
-					{szOption = L("STR_HELPER_SHOWTIPEX"), bCheck = true, bChecked = AH_Tip.bShowTipEx or false, fnAction = function() AH_Tip.bShowTipEx = not AH_Tip.bShowTipEx end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_SHOWTIPEXTIPS")) end,},
+					{szOption = L("STR_HELPER_SHOWTIPEX"), bCheck = true, bChecked = _G["AH_Tip_Loaded"] and AH_Tip.bShowTipEx or false, fnAction = function() if _G["AH_Tip_Loaded"] then AH_Tip.bShowTipEx = not AH_Tip.bShowTipEx end end, fnDisable = function() return not _G["AH_Tip_Loaded"] end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_SHOWTIPEXTIPS")) end,},
 					{ bDevide = true },
 					{szOption = L("STR_HELPER_RESETPRICE"), fnAction = function() AH_Library.tItemPrice = {} AH_Library.Message(L("STR_HELPER_RESETPRICETIPS")) end,},
 				}
@@ -1374,7 +1382,7 @@ function AH_Helper.GetItemTip(hItem)
 		szTip = szTip .. GetFormatText(L("STR_TIP_BAGANDBANK"), 101) .. GetFormatText(nItemCountInPackage, 162) .. GetFormatText("/", 162) .. GetFormatText(nItemCountInBank, 162)
 
 		--≈‰∑Ω
-		if item.nGenre == ITEM_GENRE.MATERIAL then
+		if item.nGenre == ITEM_GENRE.MATERIAL and _G["AH_Tip_Loaded"] then
 			szTip = szTip .. AH_Tip.GetRecipeTip(player, item)
 		end
 
@@ -1476,7 +1484,3 @@ end)
 RegisterEvent("PLAYER_EXIT_GAME", function()
 	SaveLUAData(AH_Helper.szDataPath, AH_Library.tItemPrice)
 end)
-
-Hotkey.AddBinding("AH_Retrieval_Open", L("STR_RETRIEVAL_TITLE"), L("STR_HELPER_HELPER"), function() AH_Retrieval.OpenPanel() end, nil)
-Hotkey.AddBinding("AH_Spliter_Open", L("STR_HELPER_SLPITITEM"), "", function() AH_Spliter.OnSplitBoxItem() end, nil)
-Hotkey.AddBinding("AH_Spliter_StackItem", L("STR_HELPER_STACKITEM"), "", function() AH_Spliter.StackItem() end, nil)
