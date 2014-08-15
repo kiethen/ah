@@ -341,7 +341,7 @@ end
 function AH_MailBank.OnUpdate()
 	local frame = Station.Lookup("Normal/MailPanel")
 	if frame and frame:IsVisible() then
-		if not bMailHooked then	--邮件界面添加一个按钮
+		if not bMailHooked then	--邮件界面添加按钮
 			local page = frame:Lookup("PageSet_Total/Page_Receive")
 			local temp = Wnd.OpenWindow("Interface\\AH\\AH_Base\\AH_Widget.ini")
 			if not page:Lookup("Btn_MailBank") then
@@ -358,6 +358,23 @@ function AH_MailBank.OnUpdate()
 						else
 							AH_MailBank.ClosePanel()
 						end
+					end
+				end
+				local hBtnLootAll = temp:Lookup("Btn_Loot")
+				if hBtnLootAll then
+					hBtnLootAll:ChangeRelation(page, true, true)
+					hBtnLootAll:SetRelPos(680, 380)
+					hBtnLootAll.OnLButtonClick = function()
+						AH_MailBank.LootAllItem()
+					end
+					hBtnLootAll.OnMouseEnter = function()
+						local x, y = this:GetAbsPos()
+						local w, h = this:GetSize()
+						local szTip = GetFormatText(L("STR_MAILBANK_LOOTALL"), 162)
+						OutputTip(szTip, 400, {x, y, w, h})
+					end
+					hBtnLootAll.OnMouseLeave = function()
+						HideTip()
 					end
 				end
 			end
@@ -515,6 +532,21 @@ function AH_MailBank.TakeMailItemToBag(fnAction, nCount)
 		return
 	end
 	pcall(fnAction)
+end
+
+function AH_MailBank.LootAllItem()
+	local dwID = Station.Lookup("Normal/MailPanel"):Lookup("PageSet_Total/Page_Receive").dwShowID
+	local MailClient = GetMailClient()
+	local mailInfo = MailClient.GetMailInfo(dwID)
+	if not mailInfo then
+		return
+	end
+	for i = 0, 7, 1 do
+		local item = mailInfo.GetItem(i)
+		if item then
+			mailInfo.TakeItem(i)
+		end
+	end
 end
 
 -- 重新筛选

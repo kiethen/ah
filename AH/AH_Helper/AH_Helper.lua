@@ -44,7 +44,7 @@ AH_Helper = {
 	tItemPrice = {},
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
-	szVersion = "3.0.2",
+	szVersion = "3.0.3",
 }
 
 
@@ -202,7 +202,7 @@ local function FormatBigMoney(nGold)
 		if nLen > 3 then
 			local a = string.sub(szGold, 0, nLen - 3)
 			local b = string.sub(szGold, -3)
-			return string.format("%s,%s", a, b)
+			return string.format("%s, %s", a, b)
 		end
 		return szGold
 	end
@@ -1161,7 +1161,8 @@ function AH_Helper.AuctionAutoSell(frame)
 	box.tBidPrice = tBidPrice
 	box.tBuyPrice = tBuyPrice
 
-	local nStackNum = item.nStackNum
+	--local nStackNum = item.nStackNum
+	local nStackNum = item.bCanStack and item.nStackNum or 1
 	local tSBidPrice = MoneyOptDiv(tBidPrice, nStackNum)
 	local tSBuyPrice = MoneyOptDiv(tBuyPrice, nStackNum)
 	local AtClient = GetAuctionClient()
@@ -1172,9 +1173,10 @@ function AH_Helper.AuctionAutoSell(frame)
 			for j = 0, player.GetBoxSize(i) - 1 do
 				local item2 = player.GetItem(i, j)
 				if item2 and GetItemNameByItem(item2) == GetItemNameByItem(item) then
-					if item2.nStackNum <= nStackNum then
-						local tBidPrice2 = MoneyOptMult(tSBidPrice, item2.nStackNum)
-						local tBuyPrice2 = MoneyOptMult(tSBuyPrice, item2.nStackNum)
+					local nStackNum2 = item2.bCanStack and item2.nStackNum or 1
+					if nStackNum2 <= nStackNum then
+						local tBidPrice2 = MoneyOptMult(tSBidPrice, nStackNum2)
+						local tBuyPrice2 = MoneyOptMult(tSBuyPrice, nStackNum2)
 						AtClient.Sell(AuctionPanel.dwTargetID, i, j, tBidPrice2.nGold, tBidPrice2.nSilver, tBidPrice2.nCopper, tBuyPrice2.nGold, tBuyPrice2.nSilver, tBuyPrice2.nCopper, nTime)
 					end
 				end
@@ -1186,17 +1188,18 @@ end
 
 local function IsSameSellItem(item1, item2)
 	if item1.nGenre == ITEM_GENRE.BOOK then
-		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and item1.szName == item2.szName and item1.nStackNum == item2.nStackNum then
+		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and item1.szName == item2.szName then
 			return true
 		end
 		return false
 	elseif item1.nGenre == ITEM_GENRE.MATERIAL and item1.nSub == 5 then
-		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and item1.nSub == item2.nSub and item1.nStackNum == item2.nStackNum then
+		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and item1.nSub == item2.nSub then
 			return true
 		end
 		return false
 	elseif item1.nGenre == ITEM_GENRE.COLOR_DIAMOND then
-		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and item1.nStackNum == item2.nStackNum then
+		local nStack1, nStack2 = item1.bCanStack and item1.nStackNum or 1, item2.bCanStack and item2.nStackNum or 1
+		if item2 and item1.nQuality == item2.nQuality and item1.nGenre == item2.nGenre and nStack1 == nStack2 then
 			local szName1, szName2 = GetItemNameByItem(item1), GetItemNameByItem(item2)
 			if string.sub(szName1, -3, -2) == string.sub(szName2, -3, -2) then
 				return true
