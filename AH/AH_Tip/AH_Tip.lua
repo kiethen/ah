@@ -9,6 +9,7 @@ _G["AH_Tip_Loaded"] = true
 AH_Tip = {
 	szItemTip = nil,
 	szBagItemTip = nil,
+	szRecipeTip = nil,
 	bShowTipEx = false,
 }
 
@@ -92,6 +93,10 @@ function AH_Tip.InitHookTip(frame)
 		h.AppendItemFromStringOrg = h.AppendItemFromString
 	end
 	h.AppendItemFromString = function(h, szText)
+		szText = string.gsub(szText,"<text>text=\"\\\
+\"</text><text>text=\"\\\
+\"</text>", "<text>text=\"\\\
+\"</text>")
 		h:AppendItemFromStringOrg(szText)
 		local hWnd = Station.GetMouseOverWindow()
 		if hWnd then
@@ -102,6 +107,10 @@ function AH_Tip.InitHookTip(frame)
 			elseif IsBigBagPanelOpened() and hWnd:GetName() == "BigBagPanel" then
 				if AH_Tip.szBagItemTip then
 					FormatTipEx(h, szText, AH_Tip.szBagItemTip)
+				end
+			elseif AH_Retrieval.IsPanelOpened() and hWnd:GetName() == "Wnd_CList" then
+				if AH_Tip.szRecipeTip then
+					FormatTipEx(h, szText, AH_Tip.szRecipeTip)
 				end
 			end
 		end

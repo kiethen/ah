@@ -302,7 +302,7 @@ function AH_Retrieval.UpdateList(frame, bSub, szKey)
 		end
 		if tRecipe then
 			for k, v in pairs(tRecipe) do
-				local szRecipeName, nCraftID, nRecipeID = unpack(v)
+				local szRecipeName, nCraftID, nRecipeID, szTip = unpack(v)
 				local recipe = GetRecipe(nCraftID, nRecipeID)
 				local nType = recipe.dwCreateItemType1
 				local nID	= recipe.dwCreateItemIndex1
@@ -324,6 +324,7 @@ function AH_Retrieval.UpdateList(frame, bSub, szKey)
 							nRecipeID = nRecipeID,
 							nQuality = tItemInfo.nQuality,
 							nTotalCount = AH_Retrieval.GetRecipeTotalCount(recipe),
+							szTip = szTip,
 						})
 					end
 				end
@@ -343,6 +344,7 @@ function AH_Retrieval.UpdateList(frame, bSub, szKey)
 			hI.nRecipeID = v.nRecipeID
 			hI.nQuality = v.nQuality
 			hI.nTotalCount = v.nTotalCount
+			hI.szTip = v.szTip
 
 			local hText  = hI:Lookup("Text_CFoodNameS")
 			local hImage = hI:Lookup("Image_CFoodS")
@@ -1823,6 +1825,9 @@ function AH_Retrieval.OnItemMouseEnter()
 	if this.bItem then
 		this.bOver = true
 		AH_Retrieval.UpdateBgStatus(this)
+		if _G["AH_Tip_Loaded"] then
+			AH_Tip.szRecipeTip = GetFormatText(L("STR_RETRIEVAL_RECIPEFROM"), 101) .. this.szTip
+		end
 		local x, y = this:GetAbsPos()
 		local w, h = this:GetSize()
 		OutputItemTip(UI_OBJECT_ITEM_INFO, GLOBAL.CURRENT_ITEM_VERSION, this.nType, this.nID, {x, y, w, h})
@@ -1866,6 +1871,9 @@ function AH_Retrieval.OnItemMouseLeave()
 	if this.bItem then
 		this.bOver = false
 		AH_Retrieval.UpdateBgStatus(this)
+		if _G["AH_Tip_Loaded"] then
+			AH_Tip.szRecipeTip = nil
+		end
 		HideTip()
 	elseif this.bEnchant or this.bProduct or this.bPred or this.bStone then
 		HideTip()

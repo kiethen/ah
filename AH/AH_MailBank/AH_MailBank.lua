@@ -819,6 +819,9 @@ function AH_MailBank.OnItemLButtonClick()
 								n = n + 1
 								AH_Library.DelayCall(0.2 * n + GetPingValue() / 2000, function()
 									AH_MailBank.TakeMailItemToBag(function() mail.TakeItem(i) end, 1)
+									if not mail.bReadFlag then
+										mail.Read()
+									end
 								end)	--循环取附件得间隔一定时间，否则无法全部取出，需要加上延迟
 							end
 						end
@@ -837,6 +840,9 @@ function AH_MailBank.OnItemLButtonClick()
 					n = n + 1
 					AH_Library.DelayCall(0.2 * n + GetPingValue() / 2000, function()
 						AH_MailBank.TakeMailItemToBag(function() mail.TakeMoney() end, 0)
+						if not mail.bReadFlag then
+							mail.Read()
+						end
 					end)
 				end
 			end
@@ -878,6 +884,9 @@ function AH_MailBank.OnItemRButtonClick()
 										n = n + 1
 										AH_Library.DelayCall(0.2 * n + GetPingValue() / 2000, function()
 											AH_MailBank.TakeMailItemToBag(function() mail.TakeItem(i) end, 1)
+											if not mail.bReadFlag then
+												mail.Read()
+											end
 										end)
 									end
 								end
@@ -895,6 +904,9 @@ function AH_MailBank.OnItemRButtonClick()
 									szOption = string.format("%s x%d", GetItemNameByItem(item2), nStack),
 									fnAction = function()
 										AH_MailBank.TakeMailItemToBag(function() mail.TakeItem(i) end, 1)
+										if not mail.bReadFlag then
+											mail.Read()
+										end
 										AH_Library.DelayCall(0.8, function()
 											AH_MailBank.LoadMailData(frame, AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
 										end)
@@ -921,6 +933,9 @@ function AH_MailBank.OnItemRButtonClick()
 							szOption = GetMoneyPureText(FormatMoneyTab(mail.nMoney)),
 							fnAction = function()
 								AH_MailBank.TakeMailItemToBag(function() mail.TakeMoney() end, 0)
+								if not mail.bReadFlag then
+									mail.Read()
+								end
 								AH_Library.DelayCall(0.8, function()
 									AH_MailBank.LoadMailData(frame, AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
 								end)

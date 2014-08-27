@@ -44,7 +44,7 @@ AH_Helper = {
 	tItemPrice = {},
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
-	szVersion = "3.0.3",
+	szVersion = "3.0.5",
 }
 
 

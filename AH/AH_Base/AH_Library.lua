@@ -360,13 +360,14 @@ function AH_Library.GetCraftRecipe(nCraftID)
 		{
 			{f = "i", t = "dwID"},
 			{f = "s", t = "szName"},
+			{f = "s", t = "szTip"},
 		},
 		FILE_OPEN_MODE.NORMAL)
 		if tTable then
 			local nRow = tTable:GetRowCount()
 			for i = 2, nRow do
 				local tRow = tTable:GetRow(i)
-				table.insert(tRes, {tRow.dwID, tRow.szName})
+				table.insert(tRes, {tRow.dwID, tRow.szName, tRow.szTip})
 			end
 		end
 	end
@@ -374,7 +375,7 @@ function AH_Library.GetCraftRecipe(nCraftID)
 	return tRes
 end
 
--- 返回 {szRecipeName, nCraftID, nRecipeID} 数据的表
+-- 返回 {szRecipeName, nCraftID, nRecipeID, szTip} 数据的表
 function AH_Library.GetAllRecipe()
 	local t = {}
 	for _, k in pairs({4, 5, 6, 7}) do
@@ -383,9 +384,9 @@ function AH_Library.GetAllRecipe()
 			local recipe = GetRecipe(k, v[1])
 			if recipe then
 				if t[k] then
-					table.insert(t[k], {v[2], k, v[1]})
+					table.insert(t[k], {v[2], k, v[1], v[3]})
 				else
-					t[k] = {{v[2], k, v[1]}}
+					t[k] = {{v[2], k, v[1], v[3]}}
 				end
 			end
 		end
