@@ -541,10 +541,17 @@ function AH_MailBank.LootAllItem()
 	if not mailInfo then
 		return
 	end
-	for i = 0, 7, 1 do
-		local item = mailInfo.GetItem(i)
-		if item then
-			mailInfo.TakeItem(i)
+	if mailInfo.bMoneyFlag then
+		mailInfo.TakeMoney()
+	end
+	if mailInfo.bItemFlag then
+		for i = 0, 7, 1 do
+			local item = mailInfo.GetItem(i)
+			if item then	
+				AH_Library.DelayCall(0.2 * i + GetPingValue() / 2000, function()
+					mailInfo.TakeItem(i)
+				end)
+			end
 		end
 	end
 end
