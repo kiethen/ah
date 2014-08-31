@@ -68,7 +68,8 @@ local tRecipeSkill = {
 	{L("STR_TIP_COOKING"), 4},
 	{L("STR_TIP_TAILORING"), 5},
 	{L("STR_TIP_FOUNDING"), 6},
-	{L("STR_TIP_MEDICINE"), 7}
+	{L("STR_TIP_MEDICINE"), 7},
+	{L("STR_TIP_RECASTING"), 14}
 }
 
 local tPosionType = {
@@ -118,6 +119,31 @@ local tSearchSort = {
 		},
 	},
 	[5] = {
+		szType = L("STR_RETRIEVAL_EQUIPREFINING"),
+		nTypeID = "14a",
+		tSubSort = {
+			L("STR_RETRIEVAL_VITALITY"), L("STR_RETRIEVAL_AGILITY"), L("STR_RETRIEVAL_SPIRIT"), 
+			L("STR_RETRIEVAL_STRENGTH"), L("STR_RETRIEVAL_SPUNK"), L("STR_RETRIEVAL_STRAIN"), 
+			L("STR_RETRIEVAL_TOUGHNESS"), L("STR_RETRIEVAL_BLOOD"), L("STR_RETRIEVAL_DODGE"), 
+			L("STR_RETRIEVAL_PARRYVALUE"), L("STR_RETRIEVAL_PARRY"), L("STR_RETRIEVAL_ALLCRITICALSTRIKE"), 
+			L("STR_RETRIEVAL_ALLCRITICALPOWER"), L("STR_RETRIEVAL_ALLHIT"), L("STR_RETRIEVAL_THREAT"), 
+			L("STR_RETRIEVAL_MAGICATTACK"), L("STR_RETRIEVAL_MAGICCRITICALDAMAGE"), L("STR_RETRIEVAL_MAGICCRITICALSTRIKE"), 
+			L("STR_RETRIEVAL_MAGICHIT"), L("STR_RETRIEVAL_MAGICOVERCOME"), L("STR_RETRIEVAL_MAGICSHIELD"), 
+			L("STR_RETRIEVAL_PHYSICSATTACK"), L("STR_RETRIEVAL_PHYSICSCRITICALDAMAGE"), L("STR_RETRIEVAL_PHYSICSCRITICALSTRIKE"), 
+			L("STR_RETRIEVAL_PHYSICSHIT"), L("STR_RETRIEVAL_PHYSICSOVERCOME"), L("STR_RETRIEVAL_PHYSICSSHIELD"), L("STR_RETRIEVAL_THERAPYPOWER"), 
+		},
+	},
+	[6] = {
+		szType = L("STR_RETRIEVAL_EQUIPOFFERING"),
+		nTypeID = "14b",
+		tSubSort = {
+			g_tStrings.tForceTitle[1], g_tStrings.tForceTitle[2], g_tStrings.tForceTitle[3],
+			g_tStrings.tForceTitle[4], g_tStrings.tForceTitle[5], g_tStrings.tForceTitle[6],
+			g_tStrings.tForceTitle[7], g_tStrings.tForceTitle[8], g_tStrings.tForceTitle[9],
+			g_tStrings.tForceTitle[10],
+		},
+	},
+	[7] = {
 		szType = L("STR_RETRIEVAL_ENCHANTING"),
 		nTypeID = 8,
 		tSubSort = {
@@ -133,13 +159,15 @@ local tSearchSort = {
 			L("STR_RETRIEVAL_MAGICCRITICALDAMAGE"), L("STR_RETRIEVAL_MAGICCRITICALSTRIKE"),
 		},
 	},
-	[6] = {
+	[8] = {
 		szType = L("STR_RETRIEVAL_OTHER"),
 		nTypeID = 0,
 		tSubSort = {
-			L("STR_RETRIEVAL_KEY"), L("STR_RETRIEVAL_ENERGY"), L("STR_RETRIEVAL_BODYSTRENGTH"), L("STR_RETRIEVAL_FAVORABILITY"),
+			L("STR_RETRIEVAL_KEY"), L("STR_RETRIEVAL_ENERGY"), L("STR_RETRIEVAL_BODYSTRENGTH"), L("STR_RETRIEVAL_CANN"), 
+			L("STR_RETRIEVAL_FIVEELE"), L("STR_RETRIEVAL_FAVORABILITY"), L("STR_RETRIEVAL_AURABEAD")
 		},
 	},
+	
 }
 
 function AH_Retrieval.InitCraft(frame)
@@ -256,6 +284,10 @@ function AH_Retrieval.ProcessType(nTypeID, nGenre)
 		return true
 	elseif nTypeID == 8 and (nGenre == 3 or nGenre == 7) then
 		return true
+	elseif nTypeID == "14a" and nGenre == 16 then
+		return true
+	elseif nTypeID == "14b" and nGenre == 3 then
+		return true
 	end
 	return false
 end
@@ -270,7 +302,7 @@ function AH_Retrieval.UpdateList(frame, bSub, szKey)
 	hList:Clear()
 	local tRecipe, tCache = nil, {}
 	if nProID < 0 then	--原料搜索配方
-		for _, k in ipairs({4, 5, 6, 7}) do
+		for _, k in ipairs({4, 5, 6, 7, 14}) do
 			if AH_Retrieval.bIsSearch then
 				tRecipe = AH_Library.tMaterialALL[k][szKey]
 				if not IsTableEmpty(tRecipe) then
@@ -437,6 +469,8 @@ function AH_Retrieval.UpdateContent(frame)
 		UpdateItemBoxExtend(hBox, ItemInfo.nGenre, ItemInfo.nQuality, ItemInfo.nStrengthLevel)
 		hBox:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 		hBox:SetOverTextFontScheme(0, 15)
+		
+		hBox.nGenre = ItemInfo.nGenre
 
 		if nMax == nMin then
 			if nMin ~= 1 then
@@ -855,7 +889,9 @@ function AH_Retrieval.OnSearchType(frame, szType, szSubType)
 	elseif StringFindW(szKey, L("STR_RETRIEVAL_THERAPY")) then
 		szKey = StringReplaceW(szKey, L("STR_RETRIEVAL_THERAPYPOWER"), L("STR_RETRIEVAL_CURE"))
 	end
-	--Output(szKey)
+	if szType == "装备炼化" then
+		szKey = szSubType
+	end
 	AH_Retrieval.UpdateList(frame, bSub, szKey)
 end
 

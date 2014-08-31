@@ -378,7 +378,7 @@ end
 -- 返回 {szRecipeName, nCraftID, nRecipeID, szTip} 数据的表
 function AH_Library.GetAllRecipe()
 	local t = {}
-	for _, k in pairs({4, 5, 6, 7}) do
+	for _, k in pairs({4, 5, 6, 7, 14}) do
 		local tRes = AH_Library.GetCraftRecipe(k)
 		for _, v in ipairs(tRes) do
 			local recipe = GetRecipe(k, v[1])
@@ -397,7 +397,7 @@ end
 -- 返回以szItemName为索引的 {nCraftID, nRecipeID} 的表
 function AH_Library.GetAllMaterial()
 	local t = {}
-	for _, k in pairs({4, 5, 6, 7}) do
+	for _, k in pairs({4, 5, 6, 7, 14}) do
 		if not t[k] then t[k] = {} end
 		local tRes = AH_Library.GetCraftRecipe(k)
 		for _, v in ipairs(tRes) do
@@ -432,7 +432,7 @@ do
 		return t1
 	end
 	setmetatable(AH_Library.tMergeRecipe, mt)
-	for k, v in ipairs({4, 5, 6, 7}) do
+	for k, v in ipairs({4, 5, 6, 7, 14}) do
 		AH_Library.tMergeRecipe = AH_Library.tMergeRecipe + AH_Library.tRecipeALL[v]
 	end
 

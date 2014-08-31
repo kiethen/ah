@@ -28,7 +28,8 @@ local tRecipeSkill = {
 	{L("STR_TIP_COOKING"), 4},
 	{L("STR_TIP_TAILORING"), 5},
 	{L("STR_TIP_FOUNDING"), 6},
-	{L("STR_TIP_MEDICINE"), 7}
+	{L("STR_TIP_MEDICINE"), 7},
+	{L("STR_TIP_RECASTING"), 14}
 }
 
 local function FormatTipEx(h, szText, szTip)
