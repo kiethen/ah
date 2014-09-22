@@ -181,7 +181,8 @@ AH_Helper.InitOrg = AuctionPanel.Init
 --AH_Helper.ShowNoticeOrg = AuctionPanel.ShowNotice	--去除免确认
 AH_Helper.UpdateSaleInfoOrg = AuctionPanel.UpdateSaleInfo
 AH_Helper.ExchangeBagAndAuctionItemOrg = AuctionPanel.ExchangeBagAndAuctionItem
-
+AH_Helper.AuctionBuyOrg = AuctionPanel.AuctionBuy
+AH_Helper.AuctionBidOrg = AuctionPanel.AuctionBid
 --------------------------------------------------------
 -- 系统AH函数重构
 --------------------------------------------------------
@@ -209,6 +210,43 @@ local function FormatBigMoney(nGold)
 		return szGold
 	end
 	return nGold
+end
+--mumu
+function AuctionPanel.AuctionBuy(hItem, szDataType)
+	if AH_Library.bAH_Guard then
+		local szKey = (hItem.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or hItem.nUiId
+		local lowestBuyPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][1],hItem.nCount)
+		local cmpPrice = MoneyOptMult(lowestBuyPrice,1.5)
+		if MoneyOptCmp(hItem.tBuyPrice, cmpPrice) == 1 then
+			local fun = function()
+			end
+			AuctionPanel.ShowNotice("警报：一口价高于最低一口价1.5倍，交易行卫士已拦截此次购买！\n如需扫货，请再次搜索此商品，以重置最低一口价。", true, fun, false, false)
+			return
+		end
+	end
+	AH_Helper.AuctionBuyOrg(hItem, szDataType)
+end
+function AuctionPanel.AuctionBid(hItem)
+	if AH_Library.bAH_Guard then
+		local szKey = (hItem.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or hItem.nUiId
+		local lowestBuyPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][1],hItem.nCount)
+		local cmpPrice = MoneyOptMult(lowestBuyPrice,1.5)
+		if MoneyOptCmp(hItem.tBidPrice, cmpPrice) == 1 then
+			local fun = function()
+			end
+			AuctionPanel.ShowNotice("警报：竞标价高于最低一口价1.5倍，交易行卫士已拦截此次竞标！\n建议您直接一口价购买所需商品。", true, fun, false, false)
+			return
+		end
+		local lowestBidPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][3],hItem.nCount)
+		local cmpPrice = MoneyOptMult(lowestBidPrice,1000000000)
+		if MoneyOptCmp(hItem.tBidPrice, cmpPrice) == 1 then
+			local fun = function()
+			end
+			AuctionPanel.ShowNotice("警报：竞标价高于最低竞标价1000000000倍！交易行卫士已拦截此次竞标！\n请您注意是否被坑！", true, fun, false, false)
+			return
+		end
+	end
+	AH_Helper.AuctionBidOrg(hItem)
 end
 
 function AuctionPanel.UpdateItemList(frame, szDataType, tItemInfo)
@@ -572,59 +610,6 @@ function AuctionPanel.OnLButtonClick()
 		szSellerSearch = ""
 	elseif szName == "Btn_SearchDefault" then
 		szSellerSearch = ""
-	end
-	--mumu
-	if AH_Library.bAH_Guard then
-		if szName == "Btn_Bid" then 
-			--local hEdit = AH_Helper.GetSearchEdit()
-			local hList = this:GetParent():Lookup("", "Handle_List")
-			local hItem = AuctionPanel.GetSelectedItem(hList)
-			if not hItem then
-				return
-			end
-			--nGold, nSliver, nCopper = UnpackMoney(hItem.tBidPrice)
-			local szKey = (hItem.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or hItem.nUiId
-			local lowestBuyPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][1],hItem.nCount)
-			local cmpPrice = MoneyOptMult(lowestBuyPrice,1.5)
-			if MoneyOptCmp(hItem.tBidPrice, cmpPrice) == 1 then
-				--AH_Library.Message("ss", "ERROR")
-				--hEdit:SetText(nGold)
-				local fun = function()
-				end
-				AuctionPanel.ShowNotice("警报：竞标价高于最低一口价1.5倍，交易行卫士已拦截此次竞标！\n建议您直接一口价购买所需商品。", true, fun, false, false)
-				return
-			end
-			local lowestBidPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][3],hItem.nCount)
-			local cmpPrice = MoneyOptMult(lowestBidPrice,1000000000)
-			if MoneyOptCmp(hItem.tBidPrice, cmpPrice) == 1 then
-				--AH_Library.Message("ss", "ERROR")
-				--hEdit:SetText(nGold)
-				local fun = function()
-				end
-				AuctionPanel.ShowNotice("警报：竞标价大于最低竞标价1000000000倍！交易行卫士已拦截此次竞标！\n请您注意是否被坑！", true, fun, false, false)
-				return
-			end
-			
-		elseif szName == "Btn_BidDefault"  then 
-			--local hEdit = AH_Helper.GetSearchEdit()
-			local hList = this:GetParent():Lookup("", "Handle_List")
-			local hItem = AuctionPanel.GetSelectedItem(hList)
-			if not hItem then
-				return
-			end
-			--nGold, nSliver, nCopper = UnpackMoney(hItem.tBuyPrice)
-			local szKey = (hItem.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or hItem.nUiId
-			local lowestBuyPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][1],hItem.nCount)
-			local cmpPrice = MoneyOptMult(lowestBuyPrice,1.5)
-			if MoneyOptCmp(hItem.tBuyPrice, cmpPrice) == 1 then
-				--AH_Library.Message("ss", "ERROR")
-				--hEdit:SetText(nGold)
-				local fun = function()
-				end
-				AuctionPanel.ShowNotice("警报：一口价大于最低一口价1.5倍，交易行卫士已拦截此次购买！\n如需扫货，请再次搜索此商品，以重置最低一口价。", true, fun, false, false)
-				return
-			end
-		end
 	end
 	AH_Helper.OnLButtonClickOrg()
 end
