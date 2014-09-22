@@ -12,6 +12,8 @@ local pairs = pairs
 
 local szIniFile = "Interface/AH/AH_Base/AH_Library.ini"
 
+AH_Library.bAH_Guard = false --mumu
+
 -----------------------------------------------
 -- 重构非白名单函数
 -----------------------------------------------

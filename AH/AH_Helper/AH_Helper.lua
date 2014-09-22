@@ -30,6 +30,7 @@ AH_Helper = {
 	--bNoAllPrompt = false,
 	bPricePercentage = false,
 	bLowestPrices = true,
+	bLowestBidPrices = false,--mumu
 	bFilterRecipe = false,
 	bFilterBook = false,
 	bAutoSearch = true,
@@ -69,6 +70,7 @@ RegisterCustomData("AH_Helper.bFilterRecipe")
 RegisterCustomData("AH_Helper.bFilterBook")
 RegisterCustomData("AH_Helper.bAutoSearch")
 RegisterCustomData("AH_Helper.bLowestPrices")
+RegisterCustomData("AH_Helper.bLowestBidPrices")--mumu
 RegisterCustomData("AH_Helper.bPricePercentage")
 --RegisterCustomData("AH_Helper.bSellNotice")
 RegisterCustomData("AH_Helper.bFastBid")
@@ -344,7 +346,7 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 		hItem.szKey = szKey
 
 		if AH_Library.tItemPrice[szKey] == nil or AH_Library.tItemPrice[szKey][2] ~= AH_Helper.nVersion then
-			AH_Library.tItemPrice[szKey] = {PRICE_LIMITED, AH_Helper.nVersion}
+			AH_Library.tItemPrice[szKey] = {PRICE_LIMITED, AH_Helper.nVersion, PRICE_LIMITED}--mumu
 		end
 		if MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) ~= 0 then
 			local tBuyPrice = MoneyOptDiv(hItem.tBuyPrice, hItem.nCount)
@@ -357,6 +359,14 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 					local szItem = MakeItemInfoLink(string.format("[%s]", hItem.szItemName), string.format("font=10 %s", szColor), item.nVersion, item.dwTabType, item.dwIndex)
 					AH_Library.Message({szItem, L("STR_HELPER_PRICE3"), szMoney}, "MONEY")
 				end
+			end
+		end
+		--mumu
+		if MoneyOptCmp(hItem.tBidPrice, PRICE_LIMITED) ~= 0 then
+			local tBidPrice = MoneyOptDiv(hItem.tBidPrice, hItem.nCount)
+			--最低竞标
+			if MoneyOptCmp(AH_Library.tItemPrice[szKey][3], tBidPrice) == 1 then
+				AH_Library.tItemPrice[szKey][3] = tBidPrice				
 			end
 		end
 	end
@@ -479,6 +489,11 @@ function AuctionPanel.GetItemSellInfo(szItemName)
 		AH_Library.Message(L("STR_HELPER_LOWPRICE"))
 		local function GetSellInfo(szName, tPrice)
 			local u = {szName = szName, tBidPrice = tPrice[1], tBuyPrice = tPrice[1], szTime = AH_Helper.szDefaultTime}
+			--mumu
+			if AH_Helper.bLowestBidPrices then
+				u.tBidPrice = tPrice[3]
+			end
+
 			if AH_Helper.bLowestPrices then
 				if AH_Helper.bPricePercentage then
 					u.tBidPrice = MoneyOptMult(u.tBidPrice, AH_Helper.nPricePercentage)
@@ -496,7 +511,7 @@ function AuctionPanel.GetItemSellInfo(szItemName)
 			return u
 		end
 		if tTempSellPrice[szKey] then
-			local tPrice = {tTempSellPrice[szKey]}
+			local tPrice = {tTempSellPrice[szKey],0,tTempSellPrice[szKey]}--mumu
 			return GetSellInfo(szKey, tPrice)
 		else
 			for k, v in pairs(AH_Library.tItemPrice) do
@@ -557,6 +572,59 @@ function AuctionPanel.OnLButtonClick()
 		szSellerSearch = ""
 	elseif szName == "Btn_SearchDefault" then
 		szSellerSearch = ""
+	end
+	--mumu
+	if AH_Library.bAH_Guard then
+		if szName == "Btn_Bid" then 
+			--local hEdit = AH_Helper.GetSearchEdit()
+			local hList = this:GetParent():Lookup("", "Handle_List")
+			local hItem = AuctionPanel.GetSelectedItem(hList)
+			if not hItem then
+				return
+			end
+			--nGold, nSliver, nCopper = UnpackMoney(hItem.tBidPrice)
+			local szKey = (hItem.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or hItem.nUiId
+			local lowestBuyPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][1],hItem.nCount)
+			local cmpPrice = MoneyOptMult(lowestBuyPrice,1.5)
+			if MoneyOptCmp(hItem.tBidPrice, cmpPrice) == 1 then
+				--AH_Library.Message("ss", "ERROR")
+				--hEdit:SetText(nGold)
+				local fun = function()
+				end
+				AuctionPanel.ShowNotice("警报：竞标价高于最低一口价1.5倍，交易行卫士已拦截此次竞标！\n建议您直接一口价购买所需商品。", true, fun, false, false)
+				return
+			end
+			local lowestBidPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][3],hItem.nCount)
+			local cmpPrice = MoneyOptMult(lowestBidPrice,1000000000)
+			if MoneyOptCmp(hItem.tBidPrice, cmpPrice) == 1 then
+				--AH_Library.Message("ss", "ERROR")
+				--hEdit:SetText(nGold)
+				local fun = function()
+				end
+				AuctionPanel.ShowNotice("警报：竞标价大于最低竞标价1000000000倍！交易行卫士已拦截此次竞标！\n请您注意是否被坑！", true, fun, false, false)
+				return
+			end
+			
+		elseif szName == "Btn_BidDefault"  then 
+			--local hEdit = AH_Helper.GetSearchEdit()
+			local hList = this:GetParent():Lookup("", "Handle_List")
+			local hItem = AuctionPanel.GetSelectedItem(hList)
+			if not hItem then
+				return
+			end
+			--nGold, nSliver, nCopper = UnpackMoney(hItem.tBuyPrice)
+			local szKey = (hItem.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or hItem.nUiId
+			local lowestBuyPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][1],hItem.nCount)
+			local cmpPrice = MoneyOptMult(lowestBuyPrice,1.5)
+			if MoneyOptCmp(hItem.tBuyPrice, cmpPrice) == 1 then
+				--AH_Library.Message("ss", "ERROR")
+				--hEdit:SetText(nGold)
+				local fun = function()
+				end
+				AuctionPanel.ShowNotice("警报：一口价大于最低一口价1.5倍，交易行卫士已拦截此次购买！\n如需扫货，请再次搜索此商品，以重置最低一口价。", true, fun, false, false)
+				return
+			end
+		end
 	end
 	AH_Helper.OnLButtonClickOrg()
 end
@@ -1063,6 +1131,7 @@ function AH_Helper.AddWidget(frame)
 						--{ bDevide = true },
 						--{szOption = L("STR_HELPER_DBCTRLSELL"), bCheck = true, bChecked = AH_Helper.bDBCtrlSell, fnAction = function() AH_Helper.bDBCtrlSell = not AH_Helper.bDBCtrlSell end,},
 					},
+					{szOption = "启用最低竞标价", bCheck = true,bChecked = AH_Helper.bLowestBidPrices,fnAction = function()AH_Helper.bLowestBidPrices = not AH_Helper.bLowestBidPrices end, fnMouseEnter = function() AH_Library.OutputTip("寄卖时，竞标价使用最低竞标价") end,},--mumu
 					{ bDevide = true },
 					--[[{szOption = L("STR_HELPER_NOALLPROMPT"), bCheck = true, bChecked = AH_Helper.bNoAllPrompt, fnAction = function() AH_Helper.bNoAllPrompt = not AH_Helper.bNoAllPrompt end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_NOALLPROMPTTIPS")) end,
 						{szOption = L("STR_HELPER_NOSELLNOTICE"), bCheck = true, bChecked = AH_Helper.bSellNotice, fnAction = function() AH_Helper.bSellNotice = not AH_Helper.bSellNotice end,},
