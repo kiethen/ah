@@ -140,7 +140,7 @@ local tSearchSort = {
 			g_tStrings.tForceTitle[1], g_tStrings.tForceTitle[2], g_tStrings.tForceTitle[3],
 			g_tStrings.tForceTitle[4], g_tStrings.tForceTitle[5], g_tStrings.tForceTitle[6],
 			g_tStrings.tForceTitle[7], g_tStrings.tForceTitle[8], g_tStrings.tForceTitle[9],
-			g_tStrings.tForceTitle[10],
+			g_tStrings.tForceTitle[10], g_tStrings.tForceTitle[21],
 		},
 	},
 	[7] = {
@@ -887,7 +887,7 @@ function AH_Retrieval.OnSearchType(frame, szType, szSubType)
 	elseif StringFindW(szKey, L("STR_RETRIEVAL_THERAPY")) then
 		szKey = StringReplaceW(szKey, L("STR_RETRIEVAL_THERAPYPOWER"), L("STR_RETRIEVAL_CURE"))
 	end
-	if szType == "×°±¸Á¶»¯" then
+	if szType == L("STR_RETRIEVAL_EQUIPREFINING") then
 		szKey = szSubType
 	end
 	AH_Retrieval.UpdateList(frame, bSub, szKey)
