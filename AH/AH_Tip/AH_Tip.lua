@@ -200,12 +200,15 @@ function AH_Tip.GetBagItemTip(box)
 
 		local szKey = (item.nGenre == ITEM_GENRE.BOOK) and GetItemNameByItem(item) or item.nUiId
 
-		local v = AH_Library.tItemPrice[szKey]
-		if v and v[1] then
-			if MoneyOptCmp(v[1], PRICE_LIMITED) ~= 0 then
-				szTip = szTip .. GetFormatText("\n" .. L("STR_TIP_PRICE"), 157) .. GetMoneyTipText(v[1], 106)
+		local fnAction = function(szKey)
+			local v = AH_Library.tItemPrice[szKey]
+			if v and v[1] then
+				if MoneyOptCmp(v[1], PRICE_LIMITED) ~= 0 then
+					szTip = szTip .. GetFormatText("\n" .. L("STR_TIP_PRICE"), 157) .. GetMoneyTipText(v[1], 106)
+				end
 			end
 		end
+		pcall(fnAction, szKey)
 	end
 	return szTip
 end

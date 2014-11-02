@@ -12,8 +12,6 @@ local pairs = pairs
 
 local szIniFile = "Interface/AH/AH_Base/AH_Library.ini"
 
-AH_Library.bAH_Guard = false --mumu
-
 -----------------------------------------------
 -- 重构非白名单函数
 -----------------------------------------------
@@ -344,6 +342,7 @@ function AH_Library.LoadLangPack()
 end
 local L = AH_Library.LoadLangPack()
 
+OutputMessage("MSG_SYS", L("STR_HELPER_EXCEPTION"))
 OutputMessage("MSG_SYS", "----------------------------\n")
 
 -----------------------------------------------
@@ -534,6 +533,7 @@ AH_Library.tPrediction = AH_Library.PredictionTable()
 
 OutputMessage("MSG_SYS", L("STR_LIBRARY_PREDICTIONINIT") .. "\n")
 OutputMessage("MSG_SYS", "----------------------------\n")
+
 -----------------------------------------------
 -- 统一所用模块的刷新事件及延迟调用
 -----------------------------------------------

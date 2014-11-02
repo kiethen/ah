@@ -469,8 +469,6 @@ function AH_Retrieval.UpdateContent(frame)
 		UpdateItemBoxExtend(hBox, ItemInfo.nGenre, ItemInfo.nQuality, ItemInfo.nStrengthLevel)
 		hBox:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 		hBox:SetOverTextFontScheme(0, 15)
-		
-		hBox.nGenre = ItemInfo.nGenre
 
 		if nMax == nMin then
 			if nMin ~= 1 then
