@@ -679,8 +679,10 @@ function AuctionPanel.AuctionBuy(hItem, szDataType)
 			end
 		end
 		local szContent = "<text>text="..EncodeComponentsString(L("STR_HELPER_GUARDTIP")).." font=159 </text>"
-		AuctionPanel.ShowNotice(szContent, true, fun, true, true)
-		return
+		return AuctionPanel.ShowNotice(szContent, true, fun, true, true)
+		
+	else
+		return AH_Helper.AuctionBuyOrg(hItem, szDataType)
 	end
 end
 
@@ -725,7 +727,7 @@ function AuctionPanel.OnItemLButtonClick()
 		end
 	elseif szName == "Handle_AItemList" then
 		AuctionPanel.Selected(this)
-			AuctionPanel.UpdateSelectedInfo(this:GetRoot(), "Sell", true)
+		AuctionPanel.UpdateSelectedInfo(this:GetRoot(), "Sell", true)
 		if AH_Helper.bFastCancel and IsAltKeyDown() and IsCtrlKeyDown() then
 			AuctionPanel.AuctionCancel(this)
 		end

@@ -1102,7 +1102,7 @@ function AH_Retrieval.GenerateMenu(menu, recipe)
 				local nCraftID, nRecipeID = unpack(data)
 				local recipe = GetRecipe(nCraftID, nRecipeID)
 				local nSubMakeCount = AH_Retrieval.GetRecipeTotalCount(recipe)
-				if player.IsRecipeLearned(nCraftID, nRecipeID) then
+				--if player.IsRecipeLearned(nCraftID, nRecipeID) then
 					local m_0 = {
 						szOption = L("STR_RETRIEVAL_MAKE", nSubMakeCount),
 						fnAction = function()
@@ -1111,11 +1111,14 @@ function AH_Retrieval.GenerateMenu(menu, recipe)
 						fnMouseEnter = function()
 							AH_Library.OutputTip(L("STR_RETRIEVAL_MAKETIPS"))
 						end,
+						fnDisable = function()
+							return not player.IsRecipeLearned(nCraftID, nRecipeID)
+						end
 					}
 					table.insert(m0, m_0)
 					table.insert(m0, {bDevide = true})
-				end
-				AH_Retrieval.GenerateMenu(m0, recipe)
+				--end
+				return AH_Retrieval.GenerateMenu(m0, recipe)
 			end
 		end
 	end
