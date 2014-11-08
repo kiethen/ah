@@ -182,6 +182,7 @@ AH_Helper.InitOrg = AuctionPanel.Init
 AH_Helper.UpdateSaleInfoOrg = AuctionPanel.UpdateSaleInfo
 AH_Helper.ExchangeBagAndAuctionItemOrg = AuctionPanel.ExchangeBagAndAuctionItem
 AH_Helper.AuctionBuyOrg = AuctionPanel.AuctionBuy
+AH_Helper.AuctionBidOrg = AuctionPanel.AuctionBid
 AH_Helper.OnCheckBoxCheckOrg = AuctionPanel.OnCheckBoxCheck
 --------------------------------------------------------
 -- 系统AH函数重构
@@ -347,7 +348,7 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 		hItem.szKey = szKey
 
 		if AH_Library.tItemPrice[szKey] == nil or AH_Library.tItemPrice[szKey][2] ~= AH_Helper.nVersion then
-			AH_Library.tItemPrice[szKey] = {PRICE_LIMITED, AH_Helper.nVersion}
+			AH_Library.tItemPrice[szKey] = {PRICE_LIMITED, AH_Helper.nVersion, PRICE_LIMITED}
 		end
 		if MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) ~= 0 then
 			local tBuyPrice = MoneyOptDiv(hItem.tBuyPrice, hItem.nCount)
@@ -360,6 +361,13 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 					local szItem = MakeItemInfoLink(string.format("[%s]", hItem.szItemName), string.format("font=10 %s", szColor), item.nVersion, item.dwTabType, item.dwIndex)
 					AH_Library.Message({szItem, L("STR_HELPER_PRICE3"), szMoney}, "MONEY")
 				end]]
+			end
+		end
+		if MoneyOptCmp(hItem.tBidPrice, PRICE_LIMITED) ~= 0 then
+			local tBidPrice = MoneyOptDiv(hItem.tBidPrice, hItem.nCount)
+			--最低竞标
+			if MoneyOptCmp(AH_Library.tItemPrice[szKey][3], tBidPrice) == 1 then
+				AH_Library.tItemPrice[szKey][3] = tBidPrice	
 			end
 		end
 	end
@@ -478,11 +486,15 @@ function AuctionPanel.GetItemSellInfo(szItemName)
 	local box = frame:Lookup("PageSet_Totle/Page_Auction/Wnd_Sale", "Box_Item")
 	local item = GetPlayerItem(GetClientPlayer(), box.dwBox, box.dwX)
 	local szKey = (szItemName == L("STR_HELPER_BOOK")) and szText or item.nUiId	--书籍名字转化
-    if AH_Helper.szDefaultValue == "Btn_Min" then
+    if AH_Helper.szDefaultValue == "Btn_Min" or AH_Helper.szDefaultValue == "Btn_Min_Bid" then
 		AH_Library.Message(L("STR_HELPER_LOWPRICE"))
 		local function GetSellInfo(szName, tPrice)
 			local u = {szName = szName, tBidPrice = tPrice[1], tBuyPrice = tPrice[1], szTime = AH_Helper.szDefaultTime}
-			if AH_Helper.bLowestPrices then
+			if AH_Helper.szDefaultValue == "Btn_Min_Bid" then
+				u.tBidPrice = tPrice[3]
+			end
+			
+			if AH_Helper.bLowestPrices then					
 				if AH_Helper.bPricePercentage then
 					u.tBidPrice = MoneyOptMult(u.tBidPrice, AH_Helper.nPricePercentage)
 					u.tBuyPrice = MoneyOptMult(u.tBuyPrice, AH_Helper.nPricePercentage)
@@ -499,7 +511,7 @@ function AuctionPanel.GetItemSellInfo(szItemName)
 			return u
 		end
 		if tTempSellPrice[szKey] then
-			local tPrice = {tTempSellPrice[szKey]}
+			local tPrice = {tTempSellPrice[szKey],0,tTempSellPrice[szKey]}
 			return GetSellInfo(szKey, tPrice)
 		else
 			for k, v in pairs(AH_Library.tItemPrice) do
@@ -664,6 +676,7 @@ function AuctionPanel.AuctionBuy(hItem, szDataType)
 	if not AH_Helper.bGuard then
 		return AH_Helper.AuctionBuyOrg(hItem, szDataType)
 	end
+	
 	local szKey = (hItem.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or hItem.nUiId
 	local lowestBuyPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][1], hItem.nCount)
 	local cmpPrice = MoneyOptMult(lowestBuyPrice, 1.5)
@@ -675,14 +688,54 @@ function AuctionPanel.AuctionBuy(hItem, szDataType)
 				local tBuyPrice = hItem.tBuyPrice
 				AuctionClient.Bid(AuctionPanel.dwTargetID, hItem.nSaleID, hItem.nItemID, hItem.nCRC, tBuyPrice.nGold, tBuyPrice.nSilver, tBuyPrice.nCopper)
 				PlaySound(SOUND.UI_SOUND, g_sound.Trade)
-				AH_Helper.UpdateList()
+				AH_Helper.UpdateList(hItem.szItemName)
 			end
 		end
-		local szContent = "<text>text="..EncodeComponentsString(L("STR_HELPER_GUARDTIP")).." font=159 </text>"
+		local szContent = FormatString(L("STR_HELPER_GUARDTIP_BUY"), hItem.szItemName)
 		return AuctionPanel.ShowNotice(szContent, true, fun, true, true)
 		
 	else
 		return AH_Helper.AuctionBuyOrg(hItem, szDataType)
+	end
+end
+
+function AuctionPanel.AuctionBid(hItem, szDataType)
+	if not AH_Helper.bGuard then
+		return AH_Helper.AuctionBidOrg(hItem, szDataType)
+	end
+	
+		local fun = function()
+			if hItem:IsValid() then
+				local hWnd = hItem:GetParent():GetParent():GetParent()
+				local nGold = FormatMoney(hWnd:Lookup("Edit_BidGold"))
+				local nSliver = FormatMoney(hWnd:Lookup("Edit_BidSilver"))
+				local nCopper = FormatMoney(hWnd:Lookup("Edit_BidCopper"))
+				
+				local tBidPrice = PackMoney(nGold, nSliver, nCopper)
+				
+				FireEvent("BUY_AUCTION_ITEM")
+				local AuctionClient = GetAuctionClient()
+				AuctionClient.Bid(AuctionPanel.dwTargetID, hItem.nSaleID, hItem.nItemID, hItem.nCRC, tBidPrice.nGold, tBidPrice.nSilver, tBidPrice.nCopper)
+				PlaySound(SOUND.UI_SOUND, g_sound.Trade)
+				AH_Helper.UpdateList(hItem.szItemName)
+			end
+		end
+	
+	local szKey = (hItem.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or hItem.nUiId
+	local lowestBuyPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][1], hItem.nCount)
+	local cmpPrice = MoneyOptMult(lowestBuyPrice, 1.5)
+	local lowestBidPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][3],hItem.nCount * 1000)
+	
+	if MoneyOptCmp(hItem.tBidPrice, cmpPrice) == 1 then	
+		local szContent = FormatString(L("STR_HELPER_GUARDTIP_BUY"), hItem.szItemName)
+		return AuctionPanel.ShowNotice(szContent, true, fun, true, true)
+		
+	elseif MoneyOptCmp(hItem.tBidPrice, lowestBidPrice) == 1 then		
+		local szContent = FormatString(L("STR_HELPER_GUARDTIP_BID"), hItem.szItemName)
+		return AuctionPanel.ShowNotice(szContent, true, fun, true, true)
+		
+	else
+		return AH_Helper.AuctionBidOrg(hItem, szDataType)
 	end
 end
 
@@ -987,6 +1040,7 @@ function AH_Helper.AddWidget(frame)
 				local menu =
 				{
 					{szOption = L("STR_HELPER_USELOWEST"), bMCheck = true, bChecked = (AH_Helper.szDefaultValue == "Btn_Min"), fnAction = function() AH_Helper.szDefaultValue = "Btn_Min" AH_Helper.SetSellPriceType() end,},
+					{szOption = L("STR_HELPER_USELOWEST_BID"), bMCheck = true, bChecked = (AH_Helper.szDefaultValue == "Btn_Min_Bid"), fnAction = function() AH_Helper.szDefaultValue = "Btn_Min_Bid" AH_Helper.SetSellPriceType() end,},
 					{szOption = L("STR_HELPER_USESYSTEM"), bMCheck = true, bChecked = (AH_Helper.szDefaultValue == "Btn_Save"), fnAction = function() AH_Helper.szDefaultValue = "Btn_Save" AH_Helper.SetSellPriceType() end,},
 				}
 				PopupMenu(menu)
@@ -1157,6 +1211,8 @@ function AH_Helper.SetSellPriceType()
 	local hText = hWndSide:Lookup("Btn_Price"):Lookup("", ""):Lookup("Text_Price")
 	if AH_Helper.szDefaultValue == "Btn_Min" then
         hText:SetText(L("STR_HELPER_LOWEST"))
+	elseif AH_Helper.szDefaultValue == "Btn_Min_Bid" then
+		hText:SetText(L("STR_HELPER_LOWEST_BID"))
     elseif AH_Helper.szDefaultValue == "Btn_Save" then
         hText:SetText(L("STR_HELPER_SYSTEM"))
     end
