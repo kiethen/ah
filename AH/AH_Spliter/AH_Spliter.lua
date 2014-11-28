@@ -7,12 +7,14 @@ local L = AH_Library.LoadLangPack()
 _G["AH_Spliter_Loaded"] = true
 
 AH_Spliter = {
+	bSaveHistory = true,
 	tItemHistory = {},
 }
 
 local szIniFile = "Interface/AH/AH_Spliter/AH_Spliter.ini"
 
 --存储拆分方案
+RegisterCustomData("AH_Spliter.bSaveHistory")
 RegisterCustomData("AH_Spliter.tItemHistory")
 
 local function PlayTipSound(szSound)
@@ -99,10 +101,12 @@ function AH_Spliter.SplitItem(frame)
 		player.ExchangeItem(hBox.dwBox, hBox.dwX, dwBox, dwX, nNum)
 	end
 	--拆分结束后存储
-	if not AH_Spliter.tItemHistory[hBox.szName] then
-		AH_Spliter.tItemHistory[hBox.szName] = {}
+	if AH_Spliter.bSaveHistory then
+		if not AH_Spliter.tItemHistory[hBox.szName] then
+			AH_Spliter.tItemHistory[hBox.szName] = {}
+		end
+		AH_Spliter.tItemHistory[hBox.szName] = {nGroup, nNum}
 	end
-	AH_Spliter.tItemHistory[hBox.szName] = {nGroup, nNum}
 	AH_Library.Message(L("STR_SPLITER_ENDSPLIT"))
 end
 
@@ -158,7 +162,7 @@ function AH_Spliter.OnExchangeBoxItem(boxItem, boxDsc, nHandCount, bHand)
 	end
 	local nGroup, nNum = "1", "1"
 	--载入拆分方案
-	if AH_Spliter.tItemHistory[item.szName] then
+	if AH_Spliter.tItemHistory[item.szName] and AH_Spliter.bSaveHistory then
 		nGroup, nNum = AH_Spliter.tItemHistory[item.szName][1], AH_Spliter.tItemHistory[item.szName][2]
 	end
 	frame:Lookup("Edit_Group"):SetText(nGroup)

@@ -11,9 +11,15 @@ AH_Tip = {
 	szBagItemTip = nil,
 	szRecipeTip = nil,
 	bShowTipEx = false,
+	bShowLearned = true,
+	bShowUnlearn = true,
+	bShowCachePrice = false
 }
 
 RegisterCustomData("AH_Tip.bShowTipEx")
+RegisterCustomData("AH_Tip.bShowLearned")
+RegisterCustomData("AH_Tip.bShowUnlearn")
+RegisterCustomData("AH_Tip.bShowCachePrice")
 
 local ipairs = ipairs
 local pairs = pairs
@@ -198,17 +204,19 @@ function AH_Tip.GetBagItemTip(box)
 			szTip = szTip .. AH_Tip.GetRecipeTip(player, item)
 		end
 
-		local szKey = (item.nGenre == ITEM_GENRE.BOOK) and GetItemNameByItem(item) or item.nUiId
+		if AH_Tip.bShowCachePrice then
+			local szKey = (item.nGenre == ITEM_GENRE.BOOK) and GetItemNameByItem(item) or item.nUiId
 
-		local fnAction = function(szKey)
-			local v = AH_Library.tItemPrice[szKey]
-			if v and v[1] then
-				if MoneyOptCmp(v[1], PRICE_LIMITED) ~= 0 then
-					szTip = szTip .. GetFormatText("\n" .. L("STR_TIP_PRICE"), 157) .. GetMoneyTipText(v[1], 106)
+			local fnAction = function(szKey)
+				local v = AH_Library.tItemPrice[szKey]
+				if v and v[1] then
+					if MoneyOptCmp(v[1], PRICE_LIMITED) ~= 0 then
+						szTip = szTip .. GetFormatText("\n" .. L("STR_TIP_PRICE"), 157) .. GetMoneyTipText(v[1], 106)
+					end
 				end
 			end
+			pcall(fnAction, szKey)
 		end
-		pcall(fnAction, szKey)
 	end
 	return szTip
 end
@@ -238,28 +246,30 @@ function AH_Tip.GetRecipeTip(player, item)
 	local szTip, bFlag = "", false
 	if IsAltKeyDown() or IsShiftKeyDown() or AH_Tip.bShowTipEx then
 		local szItemName = GetItemNameByItem(item)
-		local szOuter, szInner = GetFormatText("\n" .. L("STR_TIP_RECIPELEARN"), 165), ""
-		for k, v in ipairs(tRecipeSkill) do
-			if player.IsProfessionLearnedByCraftID(v[2]) then
-				local tRecipe = AH_Tip.GetRecipeByItemName(v[2], szItemName)
-				if not IsTableEmpty(tRecipe) then
-					bFlag, szInner = true, szInner .. GetFormatText(FormatString("\n<D0>：\n", v[1]), 163) .. GetFormatText("      ")
-					local t1 = {}
-					for k2, v2 in ipairs(tRecipe) do
-						local recipe = GetRecipe(v2[1], v2[2])
-						if recipe then
-							local tItemInfo = GetItemInfo(recipe.dwCreateItemType1, recipe.dwCreateItemIndex1)
-							table.insert(t1, "<text>text=" .. EncodeComponentsString(GetItemNameByItemInfo(tItemInfo)) .. " font=162 " .. GetItemFontColorByQuality(tItemInfo.nQuality, true).."</text>")
+		if AH_Tip.bShowLearned then
+			local szOuter, szInner = GetFormatText("\n" .. L("STR_TIP_RECIPELEARN"), 165), ""
+			for k, v in ipairs(tRecipeSkill) do
+				if player.IsProfessionLearnedByCraftID(v[2]) then
+					local tRecipe = AH_Tip.GetRecipeByItemName(v[2], szItemName)
+					if not IsTableEmpty(tRecipe) then
+						bFlag, szInner = true, szInner .. GetFormatText(FormatString("\n<D0>：\n", v[1]), 163) .. GetFormatText("      ")
+						local t1 = {}
+						for k2, v2 in ipairs(tRecipe) do
+							local recipe = GetRecipe(v2[1], v2[2])
+							if recipe then
+								local tItemInfo = GetItemInfo(recipe.dwCreateItemType1, recipe.dwCreateItemIndex1)
+								table.insert(t1, "<text>text=" .. EncodeComponentsString(GetItemNameByItemInfo(tItemInfo)) .. " font=162 " .. GetItemFontColorByQuality(tItemInfo.nQuality, true).."</text>")
+							end
 						end
+						szInner = szInner .. table.concat(t1, GetFormatText("，", 162))
 					end
-					szInner = szInner .. table.concat(t1, GetFormatText("，", 162))
 				end
 			end
 		end
+		if AH_Tip.bShowUnlearn then
 		if bFlag and szInner ~= "" then szTip = szTip .. szOuter .. szInner end
-		szOuter, szInner = GetFormatText("\n" .. L("STR_TIP_RECIPEUNLEARN"), 166), ""
-		for k, v in ipairs(tRecipeSkill) do
-			--if player.IsProfessionLearnedByCraftID(v[2]) then	--去除未学显示限制
+			szOuter, szInner = GetFormatText("\n" .. L("STR_TIP_RECIPEUNLEARN"), 166), ""
+			for k, v in ipairs(tRecipeSkill) do
 				local tRecipe = AH_Library.tMaterialALL[v[2]][szItemName]
 				if not IsTableEmpty(tRecipe) then
 					local temp = {}
@@ -281,7 +291,7 @@ function AH_Tip.GetRecipeTip(player, item)
 						szInner = szInner .. table.concat(t2, GetFormatText("，", 162))
 					end
 				end
-			--end
+			end
 		end
 		if bFlag and szInner ~= "" then szTip = szTip .. szOuter .. szInner end
 	end

@@ -24,6 +24,8 @@ AH_MailBank = {
 	bPay = false,
 }
 
+RegisterCustomData("AH_MailBank.bAutoExange")
+
 local ipairs = ipairs
 local pairs = pairs
 local tonumber = tonumber
@@ -72,6 +74,9 @@ end
 
 -- 按页加载该角色的物品数据
 function AH_MailBank.LoadMailData(frame, szName, nIndex)
+	if not frame or (frame and not frame:IsVisible()) then
+		return
+	end
 	local handle = frame:Lookup("", "")
 	local hBg = handle:Lookup("Handle_Bg")
 	local hBox = handle:Lookup("Handle_Box")
@@ -82,12 +87,16 @@ function AH_MailBank.LoadMailData(frame, szName, nIndex)
 	local i = 0
 	nIndex = math.max(1, nIndex)
 	for k, v in ipairs(tCache[nIndex] or {}) do
+		local img = hBg:Lookup(k - 1)
+		local box = hBox:Lookup(k - 1)
+		box:ClearExtentImage()
+		box:ClearObject()
+		box:SetOverText(0, "")
+		box:SetOverText(1, "")
+		img:Show()
+		box:Show()
 		if v.szName == "money" then
-			local img = hBg:Lookup(k - 1)
-			local box = hBox:Lookup(k - 1)
-			img:Show()
-			box:Show()
-			box.szType = "money"
+			box.bItem = false
 			box.szName = L("STR_MAILBANK_MONEY")
 			box.data = v
 			box:SetObject(UI_OBJECT_NOT_NEED_KNOWN, 0)
@@ -96,11 +105,7 @@ function AH_MailBank.LoadMailData(frame, szName, nIndex)
 			box:SetOverTextFontScheme(0, 15)
 			box:SetOverText(0, "")
 		else
-			local img = hBg:Lookup(k - 1)
-			local box = hBox:Lookup(k - 1)
-			img:Show()
-			box:Show()
-			box.szType = "item"
+			box.bItem = true
 			box.szName = v.szName
 			box.data = v
 			box:SetObject(UI_OBJECT_ITEM_ONLY_ID, v.nUiId, v.dwID, v.nVersion, v.dwTabType, v.dwIndex)
@@ -359,6 +364,7 @@ function AH_MailBank.OnUpdate()
 							AH_MailBank.ClosePanel()
 						end
 					end
+					hBtnMailBank:Enable(false)
 				end
 				local hBtnLootAll = temp:Lookup("Btn_Loot")
 				if hBtnLootAll then
@@ -385,6 +391,7 @@ function AH_MailBank.OnUpdate()
 					hCheck:ChangeRelation(page, true, true)
 					hCheck:SetRelPos(400, 480)
 					hCheck:Lookup("", ""):Lookup("Text_AutoExange"):SetText(L("STR_MAILBANK_AUTOEXANGE"))
+					hCheck:Check(AH_MailBank.bAutoExange)
 					hCheck.OnCheckBoxCheck = function()
 						AH_MailBank.bAutoExange = true
 					end
@@ -445,25 +452,16 @@ function AH_MailBank.OnUpdate()
 		end
 		--获取邮件
 		if not bInitMail then
-			local MailClient = GetMailClient()
-			AH_Library.DelayCall(0.5 + GetPingValue() / 2000, function()
-				local tMail = MailClient.GetMailList("all") or {}
-				--local nIndex, nTol = 0, #tMail
-				local nTol = #tMail
-				for nIndex, dwID in ipairs(tMail) do
-					--300毫秒请求一次服务器，防止邮件过多卡掉线
-					AH_Library.DelayCall(0.3 * nIndex + GetPingValue() / 2000, function()
-						local mail = MailClient.GetMailInfo(dwID)
-						mail.RequestContent(AH_MailBank.dwMailNpcID)
-						frame:Lookup("PageSet_Total/Page_Receive", "Text_ReceiveTitle"):SetText(L("STR_MAILBANK_REQUEST", nIndex, nTol))
-					end)
-				end
+			local hTitle = frame:Lookup("PageSet_Total/Page_Receive", "Text_ReceiveTitle")
+			local szTitle = hTitle:GetText()
+			hTitle:SetText(L("STR_MAILBANK_REQUEST"))
+			AH_Library.DelayCall(3 + GetPingValue() / 2000, function() 	
+				local page = frame:Lookup("PageSet_Total/Page_Receive")
+				page:Lookup("Btn_MailBank"):Enable(true)
+				hTitle:SetText(szTitle)
+				FireEvent("MAIL_LIST_UPDATE")
 			end)
 			bInitMail = true
-		end
-		if GetLogicFrameCount() % 4 == 0 then
-			local szName = GetClientPlayer().szName
-			AH_MailBank.tItemCache[szName] = AH_MailBank.SaveItemCache(true)
 		end
 	elseif not frame or not frame:IsVisible() then
 		bMailHooked, bInitMail = false, false
@@ -527,8 +525,8 @@ function AH_MailBank.TakeMailItemToBag(fnAction, nCount)
 	end
 	local tFreeBoxList = AH_Library.GetPlayerBagFreeBoxList()
 	if nCount > #tFreeBoxList then
-		AH_Library.Message(L("STR_MAILBANK_TIP2"))
-		OutputWarningMessage("MSG_NOTICE_YELLOW", L("STR_MAILBANK_TIP2"), 2)
+		--AH_Library.Message(L("STR_MAILBANK_TIP2"))
+		--OutputWarningMessage("MSG_NOTICE_YELLOW", L("STR_MAILBANK_TIP2"), 2)
 		return
 	end
 	pcall(fnAction)
@@ -798,7 +796,7 @@ function AH_MailBank.OnLButtonClick()
 		AH_MailBank.LoadMailData(frame, AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
 		AH_MailBank.ReFilter(frame)
 	elseif szName == "Btn_Refresh" then
-		AH_MailBank.LoadMailData(frame, AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
+		FireEvent("MAIL_LIST_UPDATE")
 		AH_MailBank.ReFilter(frame)
 	end
 end
@@ -810,52 +808,44 @@ function AH_MailBank.OnItemLButtonClick()
 	end
 	this:SetObjectMouseOver(1)
 
-	if not this:IsEmpty() then
-		local d = this.data
-		if this.szType == "item" then
-			local item = GetItem(d.dwID)
-			if item then
-				local MailClient = GetMailClient()
-				local n = 0	--物品个数计数器
-				for k, v in ipairs(d.tMailIDs) do
-					local mail = MailClient.GetMailInfo(v)
-					if mail.bItemFlag then
-						for i = 0, 7, 1 do
-							local item2 = mail.GetItem(i)
-							if item2 and item2.nUiId == d.nUiId then
-								n = n + 1
-								AH_Library.DelayCall(0.2 * n + GetPingValue() / 2000, function()
-									AH_MailBank.TakeMailItemToBag(function() mail.TakeItem(i) end, 1)
-									if not mail.bReadFlag then
-										mail.Read()
-									end
-								end)	--循环取附件得间隔一定时间，否则无法全部取出，需要加上延迟
-							end
-						end
-					end
-				end
-				AH_Library.DelayCall(0.8 + 0.2 * n + GetPingValue() / 2000, function()
-					AH_MailBank.LoadMailData(frame, AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
-				end)
-			end
-		elseif this.szType == "money" then
+	local d = this.data
+	if this.bItem then
+		local item = GetItem(d.dwID)
+		if item then
 			local MailClient = GetMailClient()
 			local n = 0	--物品个数计数器
 			for k, v in ipairs(d.tMailIDs) do
 				local mail = MailClient.GetMailInfo(v)
-				if mail.bMoneyFlag then
-					n = n + 1
-					AH_Library.DelayCall(0.2 * n + GetPingValue() / 2000, function()
-						AH_MailBank.TakeMailItemToBag(function() mail.TakeMoney() end, 0)
-						if not mail.bReadFlag then
-							mail.Read()
+				if mail.bItemFlag then
+					for i = 0, 7, 1 do
+						local item2 = mail.GetItem(i)
+						if item2 and item2.nUiId == d.nUiId then
+							n = n + 1
+							AH_Library.DelayCall(0.2 * n + GetPingValue() / 2000, function()
+								AH_MailBank.TakeMailItemToBag(function() mail.TakeItem(i) end, 1)
+								if not mail.bReadFlag then
+									mail.Read()
+								end	
+							end)	--循环取附件得间隔一定时间，否则无法全部取出，需要加上延迟
 						end
-					end)
+					end
 				end
 			end
-			AH_Library.DelayCall(0.8 + 0.2 * n + GetPingValue() / 2000, function()
-				AH_MailBank.LoadMailData(frame, AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
-			end)
+		end
+	else
+		local MailClient = GetMailClient()
+		local n = 0	--物品个数计数器
+		for k, v in ipairs(d.tMailIDs) do
+			local mail = MailClient.GetMailInfo(v)
+			if mail.bMoneyFlag then
+				n = n + 1
+				AH_Library.DelayCall(0.2 * n + GetPingValue() / 2000, function()
+					AH_MailBank.TakeMailItemToBag(function() mail.TakeMoney() end, 0)
+					if not mail.bReadFlag then
+						mail.Read()
+					end
+				end)
+			end
 		end
 	end
 end
@@ -867,94 +857,84 @@ function AH_MailBank.OnItemRButtonClick()
 	end
 	this:SetObjectMouseOver(1)
 	local box = this
-	if not this:IsEmpty() then
-		local d = this.data
-		if this.szType == "item" then
-			local item = GetItem(d.dwID)
-			if item then
-				local menu = {}
-				local MailClient = GetMailClient()
-				for k, v in ipairs(d.tMailIDs) do
-					local mail = MailClient.GetMailInfo(v)
-					if mail.bItemFlag then
-						local m = {
-							szOption = string.format(" %s『%s』", mail.szSenderName, mail.szTitle),
-							szIcon = "UI\\Image\\UICommon\\CommonPanel2.UITex",
-							nFrame = 105,
-							nMouseOverFrame = 106,
-							szLayer = "ICON_LEFT",
-							fnClickIcon = function()
-								local n = 0
-								for i = 0, 7, 1 do
-									local item2 = mail.GetItem(i)
-									if item2 and item2.nUiId == d.nUiId then
-										n = n + 1
-										AH_Library.DelayCall(0.2 * n + GetPingValue() / 2000, function()
-											AH_MailBank.TakeMailItemToBag(function() mail.TakeItem(i) end, 1)
-											if not mail.bReadFlag then
-												mail.Read()
-											end
-										end)
-									end
-								end
-								Wnd.CloseWindow("PopupMenuPanel")
-								AH_Library.DelayCall(0.8 + 0.2 * n + GetPingValue() / 2000, function()
-									AH_MailBank.LoadMailData(frame, AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
-								end)
-							end
-						}
-						for i = 0, 7, 1 do
-							local item2 = mail.GetItem(i)
-							if item2 and item2.nUiId == d.nUiId then
-								local nStack = (item2.bCanStack) and item2.nStackNum or 1
-								local m_1 = {
-									szOption = string.format("%s x%d", GetItemNameByItem(item2), nStack),
-									fnAction = function()
-										AH_MailBank.TakeMailItemToBag(function() mail.TakeItem(i) end, 1)
-										if not mail.bReadFlag then
-											mail.Read()
-										end
-										AH_Library.DelayCall(0.8, function()
-											AH_MailBank.LoadMailData(frame, AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
-										end)
-									end,
-									fnAutoClose = function() return true end
-								}
-								table.insert(m, m_1)
-							end
-						end
-						table.insert(menu, m)
-					end
-				end
-				PopupMenu(menu)
-			end
-		elseif this.szType == "money" then
+	
+	local d = this.data
+	if this.bItem then
+		local item = GetItem(d.dwID)
+		if item then
 			local menu = {}
 			local MailClient = GetMailClient()
 			for k, v in ipairs(d.tMailIDs) do
 				local mail = MailClient.GetMailInfo(v)
-				if mail.bMoneyFlag then
+				if mail.bItemFlag then
 					local m = {
-						szOption = string.format("%s『%s』", mail.szSenderName, mail.szTitle),
-						{
-							szOption = GetMoneyPureText(FormatMoneyTab(mail.nMoney)),
-							fnAction = function()
-								AH_MailBank.TakeMailItemToBag(function() mail.TakeMoney() end, 0)
-								if not mail.bReadFlag then
-									mail.Read()
+						szOption = string.format(" %s『%s』", mail.szSenderName, mail.szTitle),
+						szIcon = "UI\\Image\\UICommon\\CommonPanel2.UITex",
+						nFrame = 105,
+						nMouseOverFrame = 106,
+						szLayer = "ICON_LEFT",
+						fnClickIcon = function()
+							local n = 0
+							for i = 0, 7, 1 do
+								local item2 = mail.GetItem(i)
+								if item2 and item2.nUiId == d.nUiId then
+									n = n + 1
+									AH_Library.DelayCall(0.2 * n + GetPingValue() / 2000, function()
+										AH_MailBank.TakeMailItemToBag(function() mail.TakeItem(i) end, 1)
+										if not mail.bReadFlag then
+											mail.Read()
+										end
+									end)
 								end
-								AH_Library.DelayCall(0.8, function()
-									AH_MailBank.LoadMailData(frame, AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
-								end)
-							end,
-							fnAutoClose = function() return true end
-						}
+							end
+							Wnd.CloseWindow("PopupMenuPanel")
+						end
 					}
+					for i = 0, 7, 1 do
+						local item2 = mail.GetItem(i)
+						if item2 and item2.nUiId == d.nUiId then
+							local nStack = (item2.bCanStack) and item2.nStackNum or 1
+							local m_1 = {
+								szOption = string.format("%s x%d", GetItemNameByItem(item2), nStack),
+								fnAction = function()
+									AH_MailBank.TakeMailItemToBag(function() mail.TakeItem(i) end, 1)
+									if not mail.bReadFlag then
+										mail.Read()
+									end
+								end,
+								fnAutoClose = function() return true end
+							}
+							table.insert(m, m_1)
+						end
+					end
 					table.insert(menu, m)
 				end
 			end
 			PopupMenu(menu)
 		end
+	else
+		local menu = {}
+		local MailClient = GetMailClient()
+		for k, v in ipairs(d.tMailIDs) do
+			local mail = MailClient.GetMailInfo(v)
+			if mail.bMoneyFlag then
+				local m = {
+					szOption = string.format("%s『%s』", mail.szSenderName, mail.szTitle),
+					{
+						szOption = GetMoneyPureText(FormatMoneyTab(mail.nMoney)),
+						fnAction = function()
+							AH_MailBank.TakeMailItemToBag(function() mail.TakeMoney() end, 0)
+							if not mail.bReadFlag then
+								mail.Read()
+							end
+						end,
+						fnAutoClose = function() return true end
+					}
+				}
+				table.insert(menu, m)
+			end
+		end
+		PopupMenu(menu)
 	end
 end
 
@@ -965,55 +945,53 @@ function AH_MailBank.OnItemMouseEnter()
 	end
 	this:SetObjectMouseOver(1)
 
-	if not this:IsEmpty() then
-		local x, y = this:GetAbsPos()
-		local w, h = this:GetSize()
-		local d = this.data
-		if this.szType == "item" then
-			if IsAltKeyDown() then
-				local _, dwID = this:GetObjectData()
-				OutputItemTip(UI_OBJECT_ITEM_ONLY_ID, dwID, nil, nil, {x, y, w, h})
-			else
-				local item = GetItem(d.dwID)
-				if item and not IsOfflineMail() then
-					local szName = GetItemNameByItem(item)
-					local szTip = "<Text>text=" .. EncodeComponentsString(szName) .. " font=60" .. GetItemFontColorByQuality(item.nQuality, true) .. " </text>"
-					local MailClient = GetMailClient()
-					for k, v in ipairs(d.tMailIDs) do
-						local mail = MailClient.GetMailInfo(v)
-						if mail then
-							szTip = szTip .. GetFormatText(string.format("\n%s", mail.szSenderName), 164)
-							szTip = szTip .. GetFormatText(string.format(" 『%s』", mail.szTitle), 163)
-							local szLeft = AH_MailBank.FormatItemLeftTime(mail.GetLeftTime())
-							szTip = szTip .. GetFormatText(L("STR_MAILBANK_LEFTTIME", szLeft), 162)
-							local nCount = AH_MailBank.GetMailItem(mail)[szName][5]
-							szTip = szTip .. GetFormatText(L("STR_MAILBANK_NUMBER", nCount), 162)
-						else
-							local szTip = GetFormatText(this.szName, 162)
-							OutputTip(szTip, 800, {x, y, w, h})
-						end
+	local x, y = this:GetAbsPos()
+	local w, h = this:GetSize()
+	local d = this.data
+	if this.bItem then
+		if IsAltKeyDown() then
+			local _, dwID = this:GetObjectData()
+			OutputItemTip(UI_OBJECT_ITEM_ONLY_ID, dwID, nil, nil, {x, y, w, h})
+		else
+			local item = GetItem(d.dwID)
+			if item and not IsOfflineMail() then
+				local szName = GetItemNameByItem(item)
+				local szTip = "<Text>text=" .. EncodeComponentsString(szName) .. " font=60" .. GetItemFontColorByQuality(item.nQuality, true) .. " </text>"
+				local MailClient = GetMailClient()
+				for k, v in ipairs(d.tMailIDs) do
+					local mail = MailClient.GetMailInfo(v)
+					if mail then
+						szTip = szTip .. GetFormatText(string.format("\n%s", mail.szSenderName), 164)
+						szTip = szTip .. GetFormatText(string.format(" 『%s』", mail.szTitle), 163)
+						local szLeft = AH_MailBank.FormatItemLeftTime(mail.GetLeftTime())
+						szTip = szTip .. GetFormatText(L("STR_MAILBANK_LEFTTIME", szLeft), 162)
+						local nCount = AH_MailBank.GetMailItem(mail)[szName][5]
+						szTip = szTip .. GetFormatText(L("STR_MAILBANK_NUMBER", nCount), 162)
+					else
+						local szTip = GetFormatText(this.szName, 162)
+						OutputTip(szTip, 800, {x, y, w, h})
 					end
-					OutputTip(szTip, 800, {x, y, w, h})
-				else
-					local szTip = GetFormatText(this.szName, 162)
-					OutputTip(szTip, 800, {x, y, w, h})
 				end
+				OutputTip(szTip, 800, {x, y, w, h})
+			else
+				local szTip = GetFormatText(this.szName, 162)
+				OutputTip(szTip, 800, {x, y, w, h})
 			end
-		elseif this.szType == "money" then
-			local szTip = GetFormatText(g_tStrings.STR_MAIL_HAVE_MONEY, 101) .. GetMoneyTipText(d.nMoney, 106)
-			local MailClient = GetMailClient()
-			for k, v in ipairs(d.tMailIDs) do
-				local mail = MailClient.GetMailInfo(v)
-				if mail then
-					szTip = szTip .. GetFormatText(string.format("\n%s", mail.szSenderName), 164)
-					szTip = szTip .. GetFormatText(string.format(" 『%s』", mail.szTitle), 163)
-					local szLeft = AH_MailBank.FormatItemLeftTime(mail.GetLeftTime())
-					szTip = szTip .. GetFormatText(L("STR_MAILBANK_LEFTTIME", szLeft), 162)
-					szTip = szTip .. GetFormatText(g_tStrings.STR_MAIL_HAVE_MONEY, 162) .. GetMoneyTipText(mail.nMoney, 106)
-				end
-			end
-			OutputTip(szTip, 800, {x, y, w, h})
 		end
+	else
+		local szTip = GetFormatText(g_tStrings.STR_MAIL_HAVE_MONEY, 101) .. GetMoneyTipText(d.nMoney, 106)
+		local MailClient = GetMailClient()
+		for k, v in ipairs(d.tMailIDs) do
+			local mail = MailClient.GetMailInfo(v)
+			if mail then
+				szTip = szTip .. GetFormatText(string.format("\n%s", mail.szSenderName), 164)
+				szTip = szTip .. GetFormatText(string.format(" 『%s』", mail.szTitle), 163)
+				local szLeft = AH_MailBank.FormatItemLeftTime(mail.GetLeftTime())
+				szTip = szTip .. GetFormatText(L("STR_MAILBANK_LEFTTIME", szLeft), 162)
+				szTip = szTip .. GetFormatText(g_tStrings.STR_MAIL_HAVE_MONEY, 162) .. GetMoneyTipText(mail.nMoney, 106)
+			end
+		end
+		OutputTip(szTip, 800, {x, y, w, h})
 	end
 end
 
@@ -1042,6 +1020,7 @@ function AH_MailBank.OpenPanel()
 	end
 	frame:Show()
 	frame:BringToTop()
+	
 	AH_MailBank.szCurRole = GetClientPlayer().szName
 	if not AH_MailBank.tItemCache[AH_MailBank.szCurRole] then
 		AH_MailBank.tItemCache[AH_MailBank.szCurRole] = {}
@@ -1073,10 +1052,30 @@ RegisterEvent("PLAYER_EXIT_GAME", function()
 end)
 
 RegisterEvent("SEND_MAIL_RESULT", function()
-	--Output(arg1)
 	if AH_MailBank.bAutoExange and arg1 == MAIL_RESPOND_CODE.SUCCEED then
 		AH_Library.DelayCall(0.05 + GetPingValue() / 2000, AH_MailBank.OnExchangeItem)	--需要延迟几秒放置
 	end
 end)
+
+RegisterEvent("MAIL_LIST_UPDATE", function()
+	local frame = Station.Lookup("Normal/MailPanel")
+	if frame and frame:IsVisible() then
+		local szName = GetClientPlayer().szName
+		AH_MailBank.tItemCache[szName] = AH_MailBank.SaveItemCache(true)
+		AH_MailBank.LoadMailData(Station.Lookup("Normal/AH_MailBank"), AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
+	end
+end)
+
+local function FireMailListEvent(szMsg, nFont, bRich, r, g, b)
+	local frame = Station.Lookup("Normal/AH_MailBank")
+	if frame and frame:IsVisible() then
+		local szText = GetPureText(szMsg)
+		if StringFindW(szText, "你获得") then
+			AH_Library.DelayCall(0.2 + GetPingValue() / 2000, function() FireEvent("MAIL_LIST_UPDATE") end)
+		end
+	end
+end
+
+RegisterMsgMonitor(FireMailListEvent, {"MSG_MONEY", "MSG_ITEM"})
 
 AH_Library.BreatheCall("ON_AH_MAILBANK_UPDATE", AH_MailBank.OnUpdate)
