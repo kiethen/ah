@@ -997,6 +997,18 @@ function AH_Helper.AddWidget(frame)
 			end
 		end
 	end
+	
+	if not frame:Lookup("Btn_Setting") then
+		local btnSetting = temp:Lookup("Btn_Setting")
+		if btnSetting then
+			btnSetting:ChangeRelation(frame, true, true)
+			btnSetting:SetRelPos(853, 56)
+			btnSetting:Lookup("", ""):Lookup("Text_Setting"):SetText(L("STR_HELPER_SETTING"))
+			btnSetting.OnLButtonClick = function()
+				AH.TogglePanel()
+			end
+		end
+	end
 
 	if not frame:Lookup("Wnd_Side") then
 		local hWndSide = temp:Lookup("Wnd_Side")

@@ -67,7 +67,7 @@ local _AppendWnd = function(_parent, _type, _name)
     if _parent._addon then
         _parent = _parent:this()
     end
-    local hwnd = Wnd.OpenWindow(string.format(INI_FILE, _type), _name):Lookup(_type)
+    local hwnd = Wnd.OpenWindow(string.format(INI_FILE, _type:match("(%a+)_?")), _name):Lookup(_type)
     hwnd:ChangeRelation(_parent, true, true)
     hwnd:SetName(_name)
     Wnd.CloseWindow(_name)
@@ -436,13 +436,20 @@ function WndButton:ctor(_parent, _xml)
     local parser = XmlParser:ParseXmlText(_xml)
     local _name = parser.Button["@name"]
     local _text = parser.Button["@text"]
-    local _enable =(parser.Button["@enable"] == nil or parser.Button["@enable"]) and true or false
+    local _enable = (parser.Button["@enable"] == nil or parser.Button["@enable"]) and true or false
+	local _gold = parser.Button["@gold"] and true or false
     local _w = parser.Button["@w"] or 91
     local _x = parser.Button["@x"] or 0
     local _y = parser.Button["@y"] or 0
 
-    local hwnd = _AppendWnd(_parent, "WndButton", _name)
-    self._text = hwnd:Lookup("", "Text_Default")
+    local hwnd = nil
+	if _gold then
+		hwnd = _AppendWnd(_parent, "WndButton_Gold", _name)
+		self._text = hwnd:Lookup("", "Text_Default_Gold")
+	else
+		hwnd = _AppendWnd(_parent, "WndButton", _name)
+		self._text = hwnd:Lookup("", "Text_Default")
+	end
     self:text(_text or "")
     self._this = hwnd
     self:this(self._this)

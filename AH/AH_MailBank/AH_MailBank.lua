@@ -1070,7 +1070,7 @@ local function FireMailListEvent(szMsg, nFont, bRich, r, g, b)
 	local frame = Station.Lookup("Normal/AH_MailBank")
 	if frame and frame:IsVisible() then
 		local szText = GetPureText(szMsg)
-		if StringFindW(szText, "Äã»ñµÃ") then
+		if StringFindW(szText, L("STR_HELPER_OBTAINED")) then
 			AH_Library.DelayCall(0.2 + GetPingValue() / 2000, function() FireEvent("MAIL_LIST_UPDATE") end)
 		end
 	end

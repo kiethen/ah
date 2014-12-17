@@ -259,3 +259,5 @@ STR_HELPER_TEXTOPTION	选项
 STR_HELPER_GUARD	启用交易卫士
 STR_HELPER_GUARDTIP	<text>text=\"交易行卫士红色警报：\n您对[<D0>]的出价超出最低一口价 <D1> 倍以上！！！\n您确定要买？？？\" font=159 </text>
 STR_HELPER_EXCEPTION	◆交易行界面或鼠标提示界面异常时，请点击尝试重置价格数据！\n
+STR_HELPER_SETTING	详细设置
+STR_HELPER_OBTAINED	你获得

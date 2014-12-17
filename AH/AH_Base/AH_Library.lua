@@ -257,6 +257,79 @@ if not MakeItemInfoLink then
 	end
 end
 
+if not OpenInternetExplorer then
+	IsInternetExplorerOpened = function(nIndex)
+		local frame = Station.Lookup("Topmost/IE"..nIndex)
+		if frame and frame:IsVisible() then
+			return true
+		end
+		return false
+	end
+
+	IE_GetNewIEFramePos = function()
+		local nLastTime = 0
+		local nLastIndex = nil
+		for i = 1, 10, 1 do
+			local frame = Station.Lookup("Topmost/IE"..i)
+			if frame and frame:IsVisible() then
+				if frame.nOpenTime > nLastTime then
+					nLastTime = frame.nOpenTime
+					nLastIndex = i
+				end
+			end
+		end
+		if nLastIndex then
+			local frame = Station.Lookup("Topmost/IE"..nLastIndex)
+			x, y = frame:GetAbsPos()
+			local wC, hC = Station.GetClientSize()
+			if x + 890 <= wC and y + 630 <= hC then
+				return x + 30, y + 30
+			end
+		end
+		return 40, 40
+	end
+
+	OpenInternetExplorer = function(szAddr, bDisableSound)
+		local nIndex, nLast = nil, nil
+		for i = 1, 10, 1 do
+			if not IsInternetExplorerOpened(i) then
+				nIndex = i
+				break
+			elseif not nLast then
+				nLast = i
+			end
+		end
+		if not nIndex then
+			OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.MSG_OPEN_TOO_MANY)
+			return nil
+		end
+		local x, y = IE_GetNewIEFramePos()
+		local frame = Wnd.OpenWindow("InternetExplorer", "IE"..nIndex)
+		frame.bIE = true
+		frame.nIndex = nIndex
+
+		frame:BringToTop()
+		if nLast then
+			frame:SetAbsPos(x, y)
+			frame:CorrectPos()
+			frame.x = x
+			frame.y = y
+		else
+			frame:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
+			frame.x, frame.y = frame:GetAbsPos()
+		end
+		local webPage = frame:Lookup("WebPage_Page")
+		if szAddr then
+			webPage:Navigate(szAddr)
+		end
+		Station.SetFocusWindow(webPage)
+		if not bDisableSound then
+			PlaySound(SOUND.UI_SOUND,g_sound.OpenFrame)
+		end
+		return webPage
+	end
+end
+
 -----------------------------------------------
 -- 外部数据加载
 -----------------------------------------------

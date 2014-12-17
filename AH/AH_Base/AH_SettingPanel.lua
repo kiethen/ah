@@ -10,8 +10,13 @@ function AH_SettingPanel.Init()
 	
 	--Tab¿∏±≥æ∞
 	Kimochi(frame, [[<Image w="770" h="33" y="50" image="ui\\image\\uiCommon\\activepopularize2.UITex" frame="46" />]]):setType(11)
-
+	
 	local pageSet = Kimochi(frame, [[<PageSet w="768" h="462" y="50" />]])
+	
+	local feedBack = Kimochi(pageSet, [[<Button text="Œ Ã‚∑¥¿°" x="670" y="4" gold="true" />]])
+	feedBack.click = function()
+		OpenInternetExplorer("http://weibo.com/nzgeneral")
+	end
 
 	local x = 20
 	if _G["AH_Helper_Loaded"] then
