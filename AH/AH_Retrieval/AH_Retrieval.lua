@@ -352,6 +352,7 @@ function AH_Retrieval.UpdateList(frame, bSub, szKey)
 							szName = szRecipeName,
 							nID	= nID,
 							nType = nType,
+							nSub = tItemInfo.nSub,
 							nCraftID = nCraftID,
 							nRecipeID = nRecipeID,
 							nQuality = tItemInfo.nQuality,
@@ -372,6 +373,7 @@ function AH_Retrieval.UpdateList(frame, bSub, szKey)
 			hI.szName = v.szName
 			hI.nID	= v.nID
 			hI.nType = v.nType
+			hI.nSub = v.nSub
 			hI.nCraftID = v.nCraftID
 			hI.nRecipeID = v.nRecipeID
 			hI.nQuality = v.nQuality
@@ -891,6 +893,7 @@ function AH_Retrieval.OnSearchType(frame, szType, szSubType)
 		szKey = szSubType
 	end
 	AH_Retrieval.UpdateList(frame, bSub, szKey)
+	--Output(bSub, szKey)
 end
 
 -- ×ó²à·ÖÀà
@@ -1118,7 +1121,7 @@ function AH_Retrieval.GenerateMenu(menu, recipe)
 					table.insert(m0, m_0)
 					table.insert(m0, {bDevide = true})
 				--end
-				return AH_Retrieval.GenerateMenu(m0, recipe)
+				AH_Retrieval.GenerateMenu(m0, recipe)
 			end
 		end
 	end
@@ -1764,6 +1767,7 @@ function AH_Retrieval.OnItemLButtonClick()
 			EditBox_AppendLinkRecipe(this.nCraftID, this.nRecipeID)
 			return
 		end
+		--Output(this.nSub)
 		AH_Retrieval.Selected(frame, this)
 		AH_Retrieval.UpdateContent(frame)
 		PlaySound(SOUND.UI_SOUND, g_sound.Button)
