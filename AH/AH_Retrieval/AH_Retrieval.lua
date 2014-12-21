@@ -275,18 +275,19 @@ function AH_Retrieval.ProcessKeywords(szName, szKey)
 	return true
 end
 
+-- 处理配方类型
 function AH_Retrieval.ProcessType(nTypeID, nGenre)
-	if nTypeID == 0 then
+	if nTypeID == 0 then	--其他
 		return true
-	elseif nTypeID == 4 and nGenre == 14 then
+	elseif nTypeID == 4 and nGenre == 14 then	--烹饪
 		return true
-	elseif nTypeID == 7 and nGenre == 1 then
+	elseif nTypeID == 7 and nGenre == 1 then	--药品
 		return true
-	elseif nTypeID == 8 and (nGenre == 3 or nGenre == 7) then
+	elseif nTypeID == 8 and (nGenre == 3 or nGenre == 7) then	--附魔
 		return true
-	elseif nTypeID == "14a" and nGenre == 16 then
+	elseif nTypeID == "14a" and nGenre == 16 then	--炼化
 		return true
-	elseif nTypeID == "14b" and nGenre == 3 then
+	elseif nTypeID == "14b" and nGenre == 3 then	--祭化
 		return true
 	end
 	return false
@@ -353,6 +354,7 @@ function AH_Retrieval.UpdateList(frame, bSub, szKey)
 							nID	= nID,
 							nType = nType,
 							nSub = tItemInfo.nSub,
+							nGenre = tItemInfo.nGenre,
 							nCraftID = nCraftID,
 							nRecipeID = nRecipeID,
 							nQuality = tItemInfo.nQuality,
@@ -374,6 +376,7 @@ function AH_Retrieval.UpdateList(frame, bSub, szKey)
 			hI.nID	= v.nID
 			hI.nType = v.nType
 			hI.nSub = v.nSub
+			hI.nGenre = v.nGenre
 			hI.nCraftID = v.nCraftID
 			hI.nRecipeID = v.nRecipeID
 			hI.nQuality = v.nQuality
@@ -1767,7 +1770,7 @@ function AH_Retrieval.OnItemLButtonClick()
 			EditBox_AppendLinkRecipe(this.nCraftID, this.nRecipeID)
 			return
 		end
-		--Output(this.nSub)
+		--Output(AH_Retrieval.nCurTypeID, this.nSub, this.nGenre)
 		AH_Retrieval.Selected(frame, this)
 		AH_Retrieval.UpdateContent(frame)
 		PlaySound(SOUND.UI_SOUND, g_sound.Button)

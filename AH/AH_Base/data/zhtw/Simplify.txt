@@ -1,0 +1,18 @@
+﻿ID	GeneratedMagic
+atInvalid	
+atVitalityBase	體質
+atAgilityBase	身法
+atSpunkBase	元氣
+atStrengthBase	力道
+atSpiritBase	根骨
+atDamageToLifeForSelf	吸血
+atDamageToManaForSelf	吸藍
+atActiveThreatCoefficient	威脅
+atBasePotential	全屬性
+atAllTypeCriticalStrike	全會心
+atAllTypeCriticalDamagePowerBase	全會效
+atModifyCostManaPercent	內力消耗
+atGlobalResist	降低傷害
+atMoveSpeedPercent	移動速度
+atTherapyCoefficient	治療效果
+atBeTherapyCoefficient	承療效果
