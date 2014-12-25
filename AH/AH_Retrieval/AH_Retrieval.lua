@@ -1870,7 +1870,7 @@ function AH_Retrieval.OnItemMouseEnter()
 		this.bOver = true
 		AH_Retrieval.UpdateBgStatus(this)
 		if _G["AH_Tip_Loaded"] then
-			AH_Tip.szRecipeTip = GetFormatText(L("STR_RETRIEVAL_RECIPEFROM"), 101) .. this.szTip
+			AH_Tip.szRecipeTip = GetFormatText(L("STR_RETRIEVAL_MAKETIP"), 112) .. GetFormatText(L("STR_RETRIEVAL_RECIPEFROM"), 101) .. this.szTip
 		end
 		local x, y = this:GetAbsPos()
 		local w, h = this:GetSize()
