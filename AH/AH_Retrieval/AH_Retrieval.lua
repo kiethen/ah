@@ -471,7 +471,7 @@ function AH_Retrieval.UpdateContent(frame)
 
 		hBox:SetObject(UI_OBJECT_ITEM_INFO, ItemInfo.nUiId, GLOBAL.CURRENT_ITEM_VERSION, nType, nID)
 		hBox:SetObjectIcon(Table_GetItemIconID(ItemInfo.nUiId))
-		UpdateItemBoxExtend(hBox, ItemInfo.nGenre, ItemInfo.nQuality, ItemInfo.nStrengthLevel)
+		UpdateItemBoxExtend(hBox, ItemInfo.nGenre, ItemInfo.nQuality, false)
 		hBox:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 		hBox:SetOverTextFontScheme(0, 15)
 
@@ -1204,7 +1204,7 @@ function AH_Retrieval.UpdatePredItemSubList(frame, tSubItem)
 		local iteminfo = GetItemInfo(5, v.nIndex)
 		box:SetObject(UI_OBJECT_ITEM_INFO, GLOBAL.CURRENT_ITEM_VERSION, 5, v.nIndex)
 		box:SetObjectIcon(Table_GetItemIconID(v.nUiId))
-		UpdateItemBoxExtend(box, iteminfo.nGenre, iteminfo.nQuality, iteminfo.nStrengthLevel)
+		UpdateItemBoxExtend(box, iteminfo.nGenre, iteminfo.nQuality, false)
 		hItem:Lookup("Text_PStoneItem"):SetText(szStone)
 
 		for i = 1, 2 do
@@ -1218,7 +1218,7 @@ function AH_Retrieval.UpdatePredItemSubList(frame, tSubItem)
 				local iteminfo = GetItemInfo(dwTabType, dwIndex)
 				box:SetObject(UI_OBJECT_ITEM_INFO, GLOBAL.CURRENT_ITEM_VERSION, dwTabType, dwIndex)
 				box:SetObjectIcon(Table_GetItemIconID(iteminfo.nUiId))
-				UpdateItemBoxExtend(box, iteminfo.nGenre, iteminfo.nQuality, iteminfo.nStrengthLevel)
+				UpdateItemBoxExtend(box, iteminfo.nGenre, iteminfo.nQuality, false)
 			end
 		end
 		hItem:Show()
@@ -1530,7 +1530,7 @@ function AH_Retrieval.SearchDiamond(frame, nIndex)
 		box.szName = szName
 		box:SetObject(UI_OBJECT_ITEM_INFO, ItemInfo.nUiId, GLOBAL.CURRENT_ITEM_VERSION, 5, dwID)
 		box:SetObjectIcon(Table_GetItemIconID(ItemInfo.nUiId))
-		UpdateItemBoxExtend(box, ItemInfo.nGenre, ItemInfo.nQuality, ItemInfo.nStrengthLevel)
+		UpdateItemBoxExtend(box, ItemInfo.nGenre, ItemInfo.nQuality, false)
 	end
 end
 ------------------------------------------------------

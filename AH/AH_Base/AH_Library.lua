@@ -5,8 +5,6 @@
 
 AH_Library = AH_Library or {}
 
-AH_Library.tItemPrice = {}
-
 local ipairs = ipairs
 local pairs = pairs
 

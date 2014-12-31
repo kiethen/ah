@@ -1039,7 +1039,7 @@ end
 
 RegisterEvent("LOGIN_GAME", function()
 	if IsFileExist(AH_MailBank.szDataPath) then
-		AH_MailBank.tItemCache = LoadLUAData(AH_MailBank.szDataPath)
+		AH_MailBank.tItemCache = LoadLUAData(AH_MailBank.szDataPath) or {}
 	end
 end)
 

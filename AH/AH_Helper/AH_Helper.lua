@@ -29,8 +29,8 @@ AH_Helper = {
 	bFastBid = true,
 	bFastBuy = true,
 	bFastCancel = true,
-	bDBClickFastBuy = true,
-	bDBClickFastCancel = true,
+	bDBClickFastBuy = false,
+	bDBClickFastCancel = false,
 	--bNoAllPrompt = false,
 	bPricePercentage = false,
 	bLowestPrices = true,
@@ -360,14 +360,14 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 		local szKey = (item.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or item.nUiId
 		hItem.szKey = szKey
 
-		if AH_Library.tItemPrice[szKey] == nil or AH_Library.tItemPrice[szKey][2] ~= AH_Helper.nVersion then
-			AH_Library.tItemPrice[szKey] = {PRICE_LIMITED, AH_Helper.nVersion}
+		if AH_Helper.tItemPrice[szKey] == nil or AH_Helper.tItemPrice[szKey][2] ~= AH_Helper.nVersion then
+			AH_Helper.tItemPrice[szKey] = {PRICE_LIMITED, AH_Helper.nVersion}
 		end
 		if MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) ~= 0 then
 			local tBuyPrice = MoneyOptDiv(hItem.tBuyPrice, hItem.nCount)
 			--×îµÍÒ»¿Ú
-			if MoneyOptCmp(AH_Library.tItemPrice[szKey][1], tBuyPrice) == 1 then
-				AH_Library.tItemPrice[szKey][1] = tBuyPrice
+			if MoneyOptCmp(AH_Helper.tItemPrice[szKey][1], tBuyPrice) == 1 then
+				AH_Helper.tItemPrice[szKey][1] = tBuyPrice
 				--[[if bAutoSearch then
 					local szMoney = GetMoneyText((tBuyPrice), "font=10")
 					local szColor = GetItemFontColorByQuality(item.nQuality, true)
@@ -480,7 +480,7 @@ function AuctionPanel.UpdateSaleInfo(frame, bDefault)
 		local textItemName = handle:Lookup("Text_ItemName")
 		if not box:IsEmpty() then
 			local szItemName = textItemName:GetText()
-			if not AH_Library.tItemPrice[szItemName] then
+			if not AH_Helper.tItemPrice[szItemName] then
 				local szText = textTime:GetText()
 				if szText ~= AH_Helper.szDefaultTime then
 					textTime:SetText(AH_Helper.szDefaultTime)
@@ -520,7 +520,7 @@ function AuctionPanel.GetItemSellInfo(szItemName)
 			local tPrice = {tTempSellPrice[szKey]}
 			return GetSellInfo(szKey, tPrice)
 		else
-			for k, v in pairs(AH_Library.tItemPrice) do
+			for k, v in pairs(AH_Helper.tItemPrice) do
 				if szKey == k and MoneyOptCmp(v[1], PRICE_LIMITED) ~= 0 then
 					if type(szKey) == "string" then
 						return GetSellInfo(szKey, v)
@@ -683,7 +683,7 @@ function AuctionPanel.AuctionBuy(hItem, szDataType)
 		return AH_Helper.AuctionBuyOrg(hItem, szDataType)
 	end
 	local szKey = (hItem.nGenre == ITEM_GENRE.BOOK) and hItem.szItemName or hItem.nUiId
-	local lowestBuyPrice = MoneyOptMult(AH_Library.tItemPrice[szKey][1], hItem.nCount)
+	local lowestBuyPrice = MoneyOptMult(AH_Helper.tItemPrice[szKey][1], hItem.nCount)
 	local cmpPrice = MoneyOptMult(lowestBuyPrice, AH_Helper.nMultiple)
 	if MoneyOptCmp(hItem.tBuyPrice, cmpPrice) == 1 then
 		local fun = function()
@@ -1151,7 +1151,7 @@ function AH_Helper.AddWidget(frame)
 					{szOption = L("STR_HELPER_GUARD"), bCheck = true, bChecked = AH_Helper.bGuard, fnAction = function() AH_Helper.bGuard = not AH_Helper.bGuard end,},
 					{szOption = L("STR_HELPER_SHOWTIPEX"), bCheck = true, bChecked = _G["AH_Tip_Loaded"] and AH_Tip.bShowTipEx or false, fnAction = function() if _G["AH_Tip_Loaded"] then AH_Tip.bShowTipEx = not AH_Tip.bShowTipEx end end, fnDisable = function() return not _G["AH_Tip_Loaded"] end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_SHOWTIPEXTIPS")) end,},
 					{ bDevide = true },
-					{szOption = L("STR_HELPER_RESETPRICE"), fnAction = function() AH_Library.tItemPrice = {} AH_Library.Message(L("STR_HELPER_RESETPRICETIPS")) end,},
+					{szOption = L("STR_HELPER_RESETPRICE"), fnAction = function() AH_Helper.tItemPrice = {} AH_Library.Message(L("STR_HELPER_RESETPRICETIPS")) end,},
 				}
 				PopupMenu(menu)
 			end
@@ -1543,14 +1543,14 @@ AuctionPanel = protect(AuctionPanel)
 
 RegisterEvent("LOGIN_GAME", function()
 	if IsFileExist(AH_Helper.szDataPath) then
-		AH_Library.tItemPrice = LoadLUAData(AH_Helper.szDataPath)
+		AH_Helper.tItemPrice = LoadLUAData(AH_Helper.szDataPath) or {}
 	end
 end)
 
 RegisterEvent("GAME_EXIT", function()
-	SaveLUAData(AH_Helper.szDataPath, AH_Library.tItemPrice)
+	SaveLUAData(AH_Helper.szDataPath, AH_Helper.tItemPrice)
 end)
 
 RegisterEvent("PLAYER_EXIT_GAME", function()
-	SaveLUAData(AH_Helper.szDataPath, AH_Library.tItemPrice)
+	SaveLUAData(AH_Helper.szDataPath, AH_Helper.tItemPrice)
 end)
