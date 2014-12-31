@@ -413,7 +413,7 @@ function AH_Library.LoadLangPack()
 end
 local L = AH_Library.LoadLangPack()
 
-OutputMessage("MSG_SYS", L("STR_HELPER_EXCEPTION"))
+--OutputMessage("MSG_SYS", L("STR_HELPER_EXCEPTION"))
 OutputMessage("MSG_SYS", "----------------------------\n")
 
 -----------------------------------------------
