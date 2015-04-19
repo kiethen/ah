@@ -582,7 +582,7 @@ function AH_Library.PredictionTable()
 			local szDesc = Table_GetItemDesc(tRow.nUiId)
 
 			if szDesc and szDesc ~= "" then
-				local szMap = string.match(szDesc, L("STR_LIBRARY_USEIN"))
+				local szMap = string.match(szDesc, L("STR_LIBRARY_USEIN")) or string.match(szDesc, L("STR_LIBRARY_USEIN2"))
 				local index, _ = string.find(szDesc, L("STR_HELPER_ADDITIONALDROP"))
 				local szBoss = string.sub(string.match(szDesc, "£¬(.+)" .. L("STR_HELPER_ADDITIONALDROP")), 5, index - 1)
 
