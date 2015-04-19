@@ -52,7 +52,7 @@ AH_Helper = {
 	tBidderNameColor = {0, 200, 0},
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
-	szVersion = "3.1.2",
+	szVersion = "3.1.0",
 }
 
 
