@@ -1094,6 +1094,7 @@ function AH_MailBank.OpenPanel()
 	end
 	AH_MailBank.LoadMailData(frame, AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
 	PlaySound(SOUND.UI_SOUND,g_sound.OpenFrame)
+	RegisterGlobalEsc("AH_MAILBANK", AH_MailBank.IsPanelOpened, AH_MailBank.ClosePanel)
 end
 
 function AH_MailBank.ClosePanel()
