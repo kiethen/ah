@@ -772,7 +772,7 @@ function AH_MailBank.OnFrameBreathe()
 		-- 移除收取队列
 		table.remove(AH_MailBank.aLootQueue, 1)
 		AH_MailBank.nLastLootTime = GetTime()
-		AH_MailBank.tLootQueue[tLoot.nMailID .. "," .. (nUiId or "money")] = nil
+		AH_MailBank.tLootQueue[tLoot.nMailID .. "," .. (tLoot.nIndex or "money")] = nil
 	end
 end
 
