@@ -759,13 +759,15 @@ function AH_MailBank.OnFrameBreathe()
 	then
 		local tLoot = AH_MailBank.aLootQueue[1]
 		local mail = GetMailClient().GetMailInfo(tLoot.nMailID)
-		if tLoot.nIndex then
-			mail.TakeItem(tLoot.nIndex)
-		else
-			mail.TakeMoney()
-		end
-		if not mail.bReadFlag then
-			mail.Read()
+		if mail then
+			if tLoot.nIndex then
+				mail.TakeItem(tLoot.nIndex)
+			else
+				mail.TakeMoney()
+			end
+			if not mail.bReadFlag then
+				mail.Read()
+			end
 		end
 		-- 移除收取队列
 		table.remove(AH_MailBank.aLootQueue, 1)
