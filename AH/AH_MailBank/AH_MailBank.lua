@@ -1079,6 +1079,13 @@ function AH_MailBank.OpenPanel()
 	frame:Show()
 	frame:BringToTop()
 	
+	local hMailPanel = Station.Lookup("Normal/MailPanel")
+	if hMailPanel then
+		frame:SetAbsX(hMailPanel:GetAbsX() + hMailPanel:GetW())
+		frame:SetAbsY(hMailPanel:GetAbsY())
+		frame:CorrectPos()
+	end
+	
 	AH_MailBank.szCurRole = GetClientPlayer().szName
 	if not AH_MailBank.tItemCache[AH_MailBank.szCurRole] then
 		AH_MailBank.tItemCache[AH_MailBank.szCurRole] = {}
