@@ -1121,6 +1121,7 @@ RegisterEvent("MAIL_LIST_UPDATE", function()
 		local szName = GetClientPlayer().szName
 		AH_MailBank.tItemCache[szName] = AH_MailBank.SaveItemCache(true)
 		AH_MailBank.LoadMailData(Station.Lookup("Normal/AH_MailBank"), AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
+		AH_MailBank.ReFilter(AH_MailBank.GetFrame())
 	end
 end)
 
