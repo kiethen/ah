@@ -181,6 +181,7 @@ function AH_MailBank.LoadMailData(frame, szName, nIndex)
 		hType:SetText(L("STR_MAILBANK_WITHIN"))
 	end
 	frame:Lookup("Btn_Filter"):Enable(not IsOfflineMail())
+	frame:Lookup("Btn_LootAll"):Enable(not IsOfflineMail())
 	frame:Lookup("Check_NotReturn"):Enable(not IsOfflineMail())
 	local tColor = (not IsOfflineMail()) and {255, 255, 255} or {180, 180, 180}
 	frame:Lookup("", ""):Lookup("Text_Filter"):SetFontColor(unpack(tColor))
@@ -468,6 +469,9 @@ function AH_MailBank.OnUpdate()
 		end
 	elseif not frame or not frame:IsVisible() then
 		bMailHooked, bInitMail = false, false
+		if not IsOfflineMail() then
+			AH_MailBank.Close()
+		end
 	end
 
 	local frame = Station.Lookup("Normal/BigBagPanel")
