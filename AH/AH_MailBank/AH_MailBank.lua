@@ -575,10 +575,12 @@ function AH_MailBank.LootPage()
 			else
 				for _, nMailID in ipairs(hBox.data.tMailIDs) do
 					local mail = MailClient.GetMailInfo(nMailID)
-					for i = 0, 7, 1 do
-						local item = mail.GetItem(i)
-						if item and item.nUiId == hBox.data.nUiId then
-							AH_MailBank.LootMailItem(nMailID, i)
+					if mail then
+						for i = 0, 7, 1 do
+							local item = mail.GetItem(i)
+							if item and item.nUiId == hBox.data.nUiId then
+								AH_MailBank.LootMailItem(nMailID, i)
+							end
 						end
 					end
 				end
