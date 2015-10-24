@@ -209,6 +209,46 @@ local function FormatMoney(handle, bText)
 	return tonumber(szMoney)
 end
 
+local function ConvertMoney(editGB, editG, editS, editC, bUnpack)
+	local nGoldB, nGold, nSilver, nCopper = 0, 0, 0, 0
+	if editGB then
+		if editGB.GetText then
+			nGoldB = tonumber(editGB:GetText()) or 0
+		else
+			nGoldB = tonumber(editGB) or 0
+		end
+	end
+
+	if editG then
+		if editG.GetText then
+			nGold = tonumber(editG:GetText()) or 0
+		else
+			nGold = tonumber(editG) or 0
+		end
+	end
+
+	if editS then
+		if editS.GetText then
+			nSilver = tonumber(editS:GetText()) or 0
+		else
+			nSilver = tonumber(editS) or 0
+		end
+	end
+
+	if editC then
+		if editC.GetText then
+			nCopper = tonumber(editC.GetText()) or 0
+		else
+			nCopper = tonumber(editC) or 0
+		end
+	end
+
+	if bUnpack then
+		return (nGoldB * 10000 + nGold), nSilver, nCopper
+	end
+	return PackMoney( (nGoldB * 10000 + nGold), nSilver, nCopper )
+end
+
 --[[local function FormatBigMoney(nGold)
 	if AH_Helper.bFormatMoney then
 		local nLen, szGold = GetIntergerBit(nGold), tostring(nGold)
@@ -1240,7 +1280,7 @@ function AH_Helper.AuctionAutoSell(frame)
 		OutputMessage("MSG_ANNOUNCE_RED", L("STR_HELPER_SELLERROR"))
 		return
 	end
-	local nGold   = FormatMoney(hWndSale:Lookup("Edit_OPGold"))
+	--[[local nGold   = FormatMoney(hWndSale:Lookup("Edit_OPGold"))
 	local nSliver = FormatMoney(hWndSale:Lookup("Edit_OPSilver"))
 	local nCopper = FormatMoney(hWndSale:Lookup("Edit_OPCopper"))
 	tBidPrice = PackMoney(nGold, nSliver, nCopper)
@@ -1248,12 +1288,10 @@ function AH_Helper.AuctionAutoSell(frame)
 	nGold   = FormatMoney(hWndSale:Lookup("Edit_PGold"))
 	nSliver = FormatMoney(hWndSale:Lookup("Edit_PSilver"))
 	nCopper = FormatMoney(hWndSale:Lookup("Edit_PCopper"))
-	tBuyPrice = PackMoney(nGold, nSliver, nCopper)
+	tBuyPrice = PackMoney(nGold, nSliver, nCopper)]]
 
-	--[[
 	tBidPrice = ConvertMoney(hWndSale:Lookup("Edit_OPGoldB"), hWndSale:Lookup("Edit_OPGold"), hWndSale:Lookup("Edit_OPSilver"))
 	tBuyPrice = ConvertMoney(hWndSale:Lookup("Edit_PGoldB"), hWndSale:Lookup("Edit_PGold"), hWndSale:Lookup("Edit_PSilver"))
-	]]
 
 	box.szTime = szTime
 	box.tBidPrice = tBidPrice
@@ -1326,7 +1364,7 @@ function AH_Helper.AuctionSimilarAutoSell(frame)
 		OutputMessage("MSG_ANNOUNCE_RED", L("STR_HELPER_SELLERROR"))
 		return
 	end
-	local nGold   = FormatMoney(hWndSale:Lookup("Edit_OPGold"))
+	--[[local nGold   = FormatMoney(hWndSale:Lookup("Edit_OPGold"))
 	local nSliver = FormatMoney(hWndSale:Lookup("Edit_OPSilver"))
 	local nCopper = FormatMoney(hWndSale:Lookup("Edit_OPCopper"))
 	tBidPrice = PackMoney(nGold, nSliver, nCopper)
@@ -1334,12 +1372,10 @@ function AH_Helper.AuctionSimilarAutoSell(frame)
 	nGold   = FormatMoney(hWndSale:Lookup("Edit_PGold"))
 	nSliver = FormatMoney(hWndSale:Lookup("Edit_PSilver"))
 	nCopper = FormatMoney(hWndSale:Lookup("Edit_PCopper"))
-	tBuyPrice = PackMoney(nGold, nSliver, nCopper)
+	tBuyPrice = PackMoney(nGold, nSliver, nCopper)]]
 
-	--[[
 	tBidPrice = ConvertMoney(hWndSale:Lookup("Edit_OPGoldB"), hWndSale:Lookup("Edit_OPGold"), hWndSale:Lookup("Edit_OPSilver"))
 	tBuyPrice = ConvertMoney(hWndSale:Lookup("Edit_PGoldB"), hWndSale:Lookup("Edit_PGold"), hWndSale:Lookup("Edit_PSilver"))
-	]]
 
 	box.szTime = szTime
 	box.tBidPrice = tBidPrice

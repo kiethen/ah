@@ -285,10 +285,10 @@ function AH_Retrieval.ProcessType(nTypeID, nGenre)
 		return true
 	elseif nTypeID == 8 and (nGenre == 3 or nGenre == 7) then	--¸½Ä§
 		return true
-	elseif nTypeID == "14a" and nGenre == 16 then	--Á¶»¯
+	--[[elseif nTypeID == "14a" and nGenre == 16 then	--Á¶»¯
 		return true
 	elseif nTypeID == "14b" and nGenre == 3 then	--¼À»¯
-		return true
+		return true]]
 	end
 	return false
 end
