@@ -600,7 +600,8 @@ function AH_MailBank.LootAllItem()
 	if not mailInfo then
 		return
 	end
-	if mailInfo.bMoneyFlag then
+	AH_MailBank.LootMailItem(dwID, "all")
+	--[[if mailInfo.bMoneyFlag then
 		mailInfo.TakeMoney()
 	end
 	if mailInfo.bItemFlag then
@@ -610,7 +611,7 @@ function AH_MailBank.LootAllItem()
 				AH_MailBank.LootMailItem(dwID, i)
 			end
 		end
-	end
+	end]]
 end
 
 -- ÖØÐÂÉ¸Ñ¡
