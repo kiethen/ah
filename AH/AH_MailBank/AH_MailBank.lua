@@ -375,7 +375,9 @@ function AH_MailBank.OnUpdate()
 					hBtnLootAll:ChangeRelation(page, true, true)
 					hBtnLootAll:SetRelPos(680, 380)
 					hBtnLootAll.OnLButtonClick = function()
-						AH_MailBank.LootAllItem()
+						--AH_MailBank.LootAllItem()
+						local dwID = Station.Lookup("Normal/MailPanel"):Lookup("PageSet_Total/Page_Receive").dwShowID
+						AH_MailBank.LootMailItem(dwID, "all")
 					end
 					hBtnLootAll.OnMouseEnter = function()
 						local x, y = this:GetAbsPos()
@@ -528,6 +530,9 @@ end
 function AH_MailBank.LootMailItem(nMailID, nIndex)
 	local MailClient = GetMailClient()
 	local mail = MailClient.GetMailInfo(nMailID)
+	if not mail then
+		return
+	end
 	-- 物品加入收取队列
 	if mail.bItemFlag then
 		if nIndex == "all" then
@@ -593,7 +598,7 @@ function AH_MailBank.LootPage()
 	end
 end
 
-function AH_MailBank.LootAllItem()
+--[[function AH_MailBank.LootAllItem()
 	local dwID = Station.Lookup("Normal/MailPanel"):Lookup("PageSet_Total/Page_Receive").dwShowID
 	local MailClient = GetMailClient()
 	local mailInfo = MailClient.GetMailInfo(dwID)
@@ -601,7 +606,7 @@ function AH_MailBank.LootAllItem()
 		return
 	end
 	AH_MailBank.LootMailItem(dwID, "all")
-	--[[if mailInfo.bMoneyFlag then
+	if mailInfo.bMoneyFlag then
 		mailInfo.TakeMoney()
 	end
 	if mailInfo.bItemFlag then
@@ -611,8 +616,8 @@ function AH_MailBank.LootAllItem()
 				AH_MailBank.LootMailItem(dwID, i)
 			end
 		end
-	end]]
-end
+	end
+end]]
 
 -- 重新筛选
 function AH_MailBank.ReFilter(frame)
