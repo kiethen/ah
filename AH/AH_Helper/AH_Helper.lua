@@ -52,7 +52,7 @@ AH_Helper = {
 	tBidderNameColor = {0, 200, 0},
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
-	szVersion = "3.2.0",
+	szVersion = "3.3.0",
 }
 
 
@@ -98,8 +98,8 @@ RegisterCustomData("AH_Helper.tBidderNameColor")
 --------------------------------------------------------
 -- AH局部变量初始化
 --------------------------------------------------------
-local PRICE_LIMITED = PackMoney(9000000, 0, 0)
-local MAX_BID_PRICE = PackMoney(800000, 0, 0)
+local NO_BID_PRICE = PackMoney(9000000, 0, 0)
+local PRICE_LIMITED = PackMoney(800000, 0, 0)
 
 local tSearchInfoDefault = {
 	["Name"]     = L("STR_HELPER_ITEMNAME"),
@@ -129,9 +129,8 @@ local tItemWidgetInfo =
 	["Search"] =
 	{
 		Scroll="Scroll_Result", BtnUp="Btn_RUp", BtnDown="Btn_RDown", Box="Box_Box", Text="Text_BoxName", Level="Text_BoxLevel", Saler="Text_BoxSaler", Time="Text_BoxRemainTime",
-		aBidText={"Text_BidGold", "Text_BidSilver", "Text_BidCopper", "Text_MyBid"},
-		aBuyText={"Text_PrGold",  "Text_PrSilver",  "Text_PrCopper",  "Text_UnitPrice"},
-		aBuyImg ={"Image_PrGold", "Image_PrSilver", "Image_PrCopper"},
+		aBidText={"Handle_BidMoney",  "Text_MyBid"},
+		aBuyText={"Handle_BidMoneyU", "Text_UnitPrice"},
 		tCheck =
 		{
 			["CheckBox_RName"]      = {imgUp = "Image_RNameUp",     imgDown = "Image_RNameDown",     nSortType = AUCTION_ORDER_TYPE.QUALITY},
@@ -144,9 +143,8 @@ local tItemWidgetInfo =
 	["Bid"] =
 	{
 		Scroll="Scroll_Bid", BtnUp="Btn_BUp", BtnDown="Btn_BDown", Box="Box_BidBox", Text="Text_BidBoxName", Level="Text_BidBoxLevel", Saler="Text_BidBoxSaler", Time="Text_BidBoxRemainTime",
-		aBidText={"Text_BidBidGold", "Text_BidBidSilver", "Text_BidBidCopper", "Text_BidMyBid"},
-		aBuyText={"Text_BidPrGold",  "Text_BidPrSilver",  "Text_BidPrCopper",  "Text_BUnitPrice"},
-		aBuyImg ={"Image_BidPrGold", "Image_BidPrSilver", "Image_BidPrCopper"},
+		aBidText={"Handle_BidBidMoney", "Text_BidMyBid"},
+		aBuyText={"Handle_BBidMoneyU",  "Text_BUnitPrice"},
 		tCheck =
 		{
 			["CheckBox_BName"]       = {imgUp = "Image_BNameUp",      imgDown = "Image_BNameDown",      nSortType = AUCTION_ORDER_TYPE.QUALITY},
@@ -159,9 +157,8 @@ local tItemWidgetInfo =
 	["Sell"] =
 	{
 		Scroll="Scroll_Auction", BtnUp="Btn_AUp", BtnDown="Btn_ADown", Box="Box_ABox", Text="Text_ABoxName", Level="Text_ABoxLevel", Saler="Text_ABoxSaler", Time="Text_ABoxRemainTime",
-		aBidText={"Text_ABidGold", "Text_ABidSilver", "Text_ABidCopper", "Text_AMyBid",},
-		aBuyText={"Text_APrGold",  "Text_APrSilver",  "Text_APrCopper",  "Text_AUnitPrice",},
-		aBuyImg ={"Image_APrGold", "Image_APrSilver", "Image_APrCopper"},
+		aBidText={"Handle_ABidMoney", "Text_AMyBid",},
+		aBuyText={"Handle_ABidMoneyU", "Text_AUnitPrice",},
 		tCheck =
 		{
 			["CheckBox_AName"]       = {imgUp = "Image_ANameUp",      imgDown = "Image_ANameDown",      nSortType = AUCTION_ORDER_TYPE.QUALITY},
@@ -172,7 +169,6 @@ local tItemWidgetInfo =
 		}
 	}
 }
-
 
 AH_Helper.UpdateItemListOrg = AuctionPanel.UpdateItemList
 AH_Helper.SetSaleInfoOrg = AuctionPanel.SetSaleInfo
@@ -211,6 +207,46 @@ local function FormatMoney(handle, bText)
 		szMoney = 0
 	end
 	return tonumber(szMoney)
+end
+
+local function ConvertMoney(editGB, editG, editS, editC, bUnpack)
+	local nGoldB, nGold, nSilver, nCopper = 0, 0, 0, 0
+	if editGB then
+		if editGB.GetText then
+			nGoldB = tonumber(editGB:GetText()) or 0
+		else
+			nGoldB = tonumber(editGB) or 0
+		end
+	end
+
+	if editG then
+		if editG.GetText then
+			nGold = tonumber(editG:GetText()) or 0
+		else
+			nGold = tonumber(editG) or 0
+		end
+	end
+
+	if editS then
+		if editS.GetText then
+			nSilver = tonumber(editS:GetText()) or 0
+		else
+			nSilver = tonumber(editS) or 0
+		end
+	end
+
+	if editC then
+		if editC.GetText then
+			nCopper = tonumber(editC.GetText()) or 0
+		else
+			nCopper = tonumber(editC) or 0
+		end
+	end
+
+	if bUnpack then
+		return (nGoldB * 10000 + nGold), nSilver, nCopper
+	end
+	return PackMoney( (nGoldB * 10000 + nGold), nSilver, nCopper )
 end
 
 --[[local function FormatBigMoney(nGold)
@@ -329,7 +365,7 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 	hItem.dwIndex = item.dwIndex
 
 	if MoneyOptCmp(hItem.tBuyPrice, 0) == 0 then
-		hItem.tBuyPrice = PRICE_LIMITED
+		hItem.tBuyPrice = NO_BID_PRICE
 	end
 
 	local nCount = 1
@@ -364,9 +400,9 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 		hItem.szKey = szKey
 
 		if AH_Helper.tItemPrice[szKey] == nil or AH_Helper.tItemPrice[szKey][2] ~= AH_Helper.nVersion then
-			AH_Helper.tItemPrice[szKey] = {PRICE_LIMITED, AH_Helper.nVersion}
+			AH_Helper.tItemPrice[szKey] = {NO_BID_PRICE, AH_Helper.nVersion}
 		end
-		if MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) ~= 0 then
+		if MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) ~= 0 then
 			local tBuyPrice = MoneyOptDiv(hItem.tBuyPrice, hItem.nCount)
 			--最低一口
 			if MoneyOptCmp(AH_Helper.tItemPrice[szKey][1], tBuyPrice) == 1 then
@@ -405,21 +441,33 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 		hTextSaler:SetText(tItemData["SellerName"])
 	end
 
-	local nGold, nSliver, nCopper = UnpackMoney(hItem.tBidPrice)
+	--[[local nGold, nSliver, nCopper = UnpackMoney(hItem.tBidPrice)
 	hItem:Lookup(tInfo.aBidText[1]):SetText(nGold)
 	hItem:Lookup(tInfo.aBidText[2]):SetText(nSliver)
-	hItem:Lookup(tInfo.aBidText[3]):SetText(nCopper)
+	hItem:Lookup(tInfo.aBidText[3]):SetText(nCopper)]]
+	local smoney = GetMoneyText(hItem.tBidPrice, "font=18", "all3", nil, 18)
+	local hMoney = hItem:Lookup(tInfo.aBidText[1])
+	hMoney:Clear()
+	hMoney:AppendItemFromString(smoney)
+	hMoney:FormatAllItemPos()
 
-	if MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) ~= 0 then
-		nGold, nSliver, nCopper = UnpackMoney(hItem.tBuyPrice)
+	if MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) ~= 0 then
+		--[[nGold, nSliver, nCopper = UnpackMoney(hItem.tBuyPrice)
 		hItem:Lookup(tInfo.aBuyText[1]):SetText(nGold)
 		hItem:Lookup(tInfo.aBuyText[2]):SetText(nSliver)
-		hItem:Lookup(tInfo.aBuyText[3]):SetText(nCopper)
+		hItem:Lookup(tInfo.aBuyText[3]):SetText(nCopper)]]
+		smoney = GetMoneyText(hItem.tBuyPrice, "font=18", "all3", nil, 18)
+		hMoney = hItem:Lookup(tInfo.aBuyText[1])
+		hMoney:Clear()
+		hMoney:AppendItemFromString(smoney)
+		hMoney:FormatAllItemPos()
 	else
-		hItem:Lookup(tInfo.aBuyImg[1]):Hide()
+		--[[hItem:Lookup(tInfo.aBuyImg[1]):Hide()
 		hItem:Lookup(tInfo.aBuyImg[2]):Hide()
 		hItem:Lookup(tInfo.aBuyImg[3]):Hide()
-		hItem:Lookup(tInfo.aBuyText[4]):Hide()
+		hItem:Lookup(tInfo.aBuyText[4]):Hide()]]
+		hItem:Lookup(tInfo.aBuyText[1]):Hide()
+		hItem:Lookup(tInfo.aBuyText[2]):Hide()
 	end
 
 	--竞拍时间显示秒
@@ -524,7 +572,7 @@ function AuctionPanel.GetItemSellInfo(szItemName)
 			return GetSellInfo(szKey, tPrice)
 		else
 			for k, v in pairs(AH_Helper.tItemPrice) do
-				if szKey == k and MoneyOptCmp(v[1], PRICE_LIMITED) ~= 0 then
+				if szKey == k and MoneyOptCmp(v[1], NO_BID_PRICE) ~= 0 then
 					if type(szKey) == "string" then
 						return GetSellInfo(szKey, v)
 					else
@@ -725,7 +773,7 @@ end]]
 function AuctionPanel.OnItemLButtonDBClick()
 	local szName = this:GetName()
 	if szName == "Handle_ItemList" and AH_Helper.bDBClickFastBuy then
-		if MoneyOptCmp(this.tBuyPrice, PRICE_LIMITED) ~= 0 then
+		if MoneyOptCmp(this.tBuyPrice, NO_BID_PRICE) ~= 0 then
 			AuctionPanel.AuctionBuy(this, "Search")
 		end
 	elseif szName == "Handle_AItemList" and AH_Helper.bDBClickFastCancel then
@@ -743,7 +791,7 @@ function AuctionPanel.OnItemLButtonClick()
 		if AH_Helper.bFastBid and IsShiftKeyDown() and IsCtrlKeyDown() then
 			AuctionPanel.AuctionBid(this)
 		elseif AH_Helper.bFastBuy and IsAltKeyDown() and IsCtrlKeyDown() then
-			if MoneyOptCmp(this.tBuyPrice, PRICE_LIMITED) ~= 0 then
+			if MoneyOptCmp(this.tBuyPrice, NO_BID_PRICE) ~= 0 then
 				AuctionPanel.AuctionBuy(this, "Search")
 			end
 		end
@@ -899,7 +947,7 @@ function AH_Helper.UpdatePriceInfo(hList, szDataType)
 		local tBidPrice = hItem.tBidPrice
 		local tBuyPrice = hItem.tBuyPrice
 
-		local hTextBid = hItem:Lookup(tInfo.aBidText[4])
+		local hTextBid = hItem:Lookup(tInfo.aBidText[2])
 		if bUnitPrice then
 			tBidPrice = MoneyOptDiv(hItem.tBidPrice, hItem.nCount)
 			tBuyPrice = MoneyOptDiv(hItem.tBuyPrice, hItem.nCount)
@@ -922,8 +970,8 @@ function AH_Helper.UpdatePriceInfo(hList, szDataType)
 				hTextBid:SetText(L("STR_HELPER_UNITPRICE"))
 			end
 
-			if MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) ~= 0 then
-				hItem:Lookup(tInfo.aBuyText[4]):SetText("")
+			if MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) ~= 0 then
+				hItem:Lookup(tInfo.aBuyText[2]):SetText("")
 			end
 		else
 			if szDataType == "Search" then
@@ -943,21 +991,34 @@ function AH_Helper.UpdatePriceInfo(hList, szDataType)
 				hTextBid:SetText("")
 			end
 
-			if MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) ~= 0 then
-				hItem:Lookup(tInfo.aBuyText[4]):SetText("")
+			if MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) ~= 0 then
+				hItem:Lookup(tInfo.aBuyText[2]):SetText("")
 			end
 		end
 
-		local nGold, nSliver, nCopper = UnpackMoney(tBidPrice)
+		--[[local nGold, nSliver, nCopper = UnpackMoney(tBidPrice)
 		hItem:Lookup(tInfo.aBidText[1]):SetText(nGold)
 		hItem:Lookup(tInfo.aBidText[2]):SetText(nSliver)
 		hItem:Lookup(tInfo.aBidText[3]):SetText(nCopper)
 
-		if MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) ~= 0 then
+		if MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) ~= 0 then
 			nGold, nSliver, nCopper = UnpackMoney(tBuyPrice)
 			hItem:Lookup(tInfo.aBuyText[1]):SetText(nGold)
 			hItem:Lookup(tInfo.aBuyText[2]):SetText(nSliver)
 			hItem:Lookup(tInfo.aBuyText[3]):SetText(nCopper)
+		end]]
+		local smoney = GetMoneyText(tBidPrice, "font=18", "all3", nil, 18)
+		local hMoney = hItem:Lookup(tInfo.aBidText[1])
+		hMoney:Clear()
+		hMoney:AppendItemFromString(smoney)
+		hMoney:FormatAllItemPos()
+
+		if MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) ~= 0 then
+			smoney = GetMoneyText(tBuyPrice, "font=18", "all3", nil, 18)
+			hMoney = hItem:Lookup(tInfo.aBuyText[1])
+			hMoney:Clear()
+			hMoney:AppendItemFromString(smoney)
+			hMoney:FormatAllItemPos()
 		end
 	end
 end
@@ -1219,7 +1280,7 @@ function AH_Helper.AuctionAutoSell(frame)
 		OutputMessage("MSG_ANNOUNCE_RED", L("STR_HELPER_SELLERROR"))
 		return
 	end
-	local nGold   = FormatMoney(hWndSale:Lookup("Edit_OPGold"))
+	--[[local nGold   = FormatMoney(hWndSale:Lookup("Edit_OPGold"))
 	local nSliver = FormatMoney(hWndSale:Lookup("Edit_OPSilver"))
 	local nCopper = FormatMoney(hWndSale:Lookup("Edit_OPCopper"))
 	tBidPrice = PackMoney(nGold, nSliver, nCopper)
@@ -1227,7 +1288,10 @@ function AH_Helper.AuctionAutoSell(frame)
 	nGold   = FormatMoney(hWndSale:Lookup("Edit_PGold"))
 	nSliver = FormatMoney(hWndSale:Lookup("Edit_PSilver"))
 	nCopper = FormatMoney(hWndSale:Lookup("Edit_PCopper"))
-	tBuyPrice = PackMoney(nGold, nSliver, nCopper)
+	tBuyPrice = PackMoney(nGold, nSliver, nCopper)]]
+
+	tBidPrice = ConvertMoney(hWndSale:Lookup("Edit_OPGoldB"), hWndSale:Lookup("Edit_OPGold"), hWndSale:Lookup("Edit_OPSilver"))
+	tBuyPrice = ConvertMoney(hWndSale:Lookup("Edit_PGoldB"), hWndSale:Lookup("Edit_PGold"), hWndSale:Lookup("Edit_PSilver"))
 
 	box.szTime = szTime
 	box.tBidPrice = tBidPrice
@@ -1300,7 +1364,7 @@ function AH_Helper.AuctionSimilarAutoSell(frame)
 		OutputMessage("MSG_ANNOUNCE_RED", L("STR_HELPER_SELLERROR"))
 		return
 	end
-	local nGold   = FormatMoney(hWndSale:Lookup("Edit_OPGold"))
+	--[[local nGold   = FormatMoney(hWndSale:Lookup("Edit_OPGold"))
 	local nSliver = FormatMoney(hWndSale:Lookup("Edit_OPSilver"))
 	local nCopper = FormatMoney(hWndSale:Lookup("Edit_OPCopper"))
 	tBidPrice = PackMoney(nGold, nSliver, nCopper)
@@ -1308,7 +1372,10 @@ function AH_Helper.AuctionSimilarAutoSell(frame)
 	nGold   = FormatMoney(hWndSale:Lookup("Edit_PGold"))
 	nSliver = FormatMoney(hWndSale:Lookup("Edit_PSilver"))
 	nCopper = FormatMoney(hWndSale:Lookup("Edit_PCopper"))
-	tBuyPrice = PackMoney(nGold, nSliver, nCopper)
+	tBuyPrice = PackMoney(nGold, nSliver, nCopper)]]
+
+	tBidPrice = ConvertMoney(hWndSale:Lookup("Edit_OPGoldB"), hWndSale:Lookup("Edit_OPGold"), hWndSale:Lookup("Edit_OPSilver"))
+	tBuyPrice = ConvertMoney(hWndSale:Lookup("Edit_PGoldB"), hWndSale:Lookup("Edit_PGold"), hWndSale:Lookup("Edit_PSilver"))
 
 	box.szTime = szTime
 	box.tBidPrice = tBidPrice
@@ -1394,7 +1461,7 @@ end
 function AH_Helper.SetTempSellPrice(hItem)
 	local szItemName = hItem.szItemName
 	local szKey = hItem.szKey
-	if MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) == 0 then
+	if MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) == 0 then
 		AH_Library.Message(L("STR_HELPER_ALERT3"))
 		return
 	end
@@ -1459,7 +1526,7 @@ function AH_Helper.GetItemTip(hItem)
 			szTip = szTip .. AH_Tip.GetRecipeTip(player, item)
 		end
 
-		if MoneyOptCmp(hItem.tBuyPrice, 0) == 1 and MoneyOptCmp(hItem.tBuyPrice, PRICE_LIMITED) ~= 0 then
+		if MoneyOptCmp(hItem.tBuyPrice, 0) == 1 and MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) ~= 0 then
 			if AH_Helper.GetCheckPervalue() then
 				szTip = szTip .. GetFormatText("\n" .. L("STR_HELPER_PRICE1"), 157) .. GetMoneyTipText(hItem.tBuyPrice, 106)
 			else

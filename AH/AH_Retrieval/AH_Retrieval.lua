@@ -118,7 +118,7 @@ local tSearchSort = {
 			L("STR_RETRIEVAL_AGILITY"), L("STR_RETRIEVAL_POTENTIAL"), L("STR_RETRIEVAL_VITALITY"),
 		},
 	},
-	[5] = {
+	--[[[5] = {
 		szType = L("STR_RETRIEVAL_EQUIPREFINING"),
 		nTypeID = "14a",
 		tSubSort = {
@@ -142,8 +142,8 @@ local tSearchSort = {
 			g_tStrings.tForceTitle[7], g_tStrings.tForceTitle[8], g_tStrings.tForceTitle[9],
 			g_tStrings.tForceTitle[10], g_tStrings.tForceTitle[21],
 		},
-	},
-	[7] = {
+	},]]
+	[5] = {
 		szType = L("STR_RETRIEVAL_ENCHANTING"),
 		nTypeID = 8,
 		tSubSort = {
@@ -159,7 +159,7 @@ local tSearchSort = {
 			L("STR_RETRIEVAL_MAGICCRITICALDAMAGE"), L("STR_RETRIEVAL_MAGICCRITICALSTRIKE"),
 		},
 	},
-	[8] = {
+	[6] = {
 		szType = L("STR_RETRIEVAL_OTHER"),
 		nTypeID = 0,
 		tSubSort = {
@@ -285,10 +285,10 @@ function AH_Retrieval.ProcessType(nTypeID, nGenre)
 		return true
 	elseif nTypeID == 8 and (nGenre == 3 or nGenre == 7) then	--¸½Ä§
 		return true
-	elseif nTypeID == "14a" and nGenre == 16 then	--Á¶»¯
+	--[[elseif nTypeID == "14a" and nGenre == 16 then	--Á¶»¯
 		return true
 	elseif nTypeID == "14b" and nGenre == 3 then	--¼À»¯
-		return true
+		return true]]
 	end
 	return false
 end
