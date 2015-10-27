@@ -523,6 +523,38 @@ function AH_MailBank.FormatItemLeftTime(nTime)
 	end
 end
 
+local function LootingBreathe()
+	if GetTime() - AH_MailBank.nLastLootTime <= GetPingValue() then -- 取附件得间隔一定时间，否则无法全部取出，需要加上延迟
+		return
+	elseif not IsOfflineMail() -- 离线邮件不收件
+	and #AH_MailBank.aLootQueue > 0 -- 确定收件队列不为空
+	and AH_MailBank.dwMailNpcID and GetNpc(AH_MailBank.dwMailNpcID) -- 确保信使NPC可见
+	and GetCharacterDistance(UI_GetClientPlayerID(), AH_MailBank.dwMailNpcID) / 64 <= 6 -- 限制距离取件
+	-- and #AH_Library.GetPlayerBagFreeBoxList() > 0 -- 确保背包不空
+	then
+		local tLoot = AH_MailBank.aLootQueue[1]
+		local mail = GetMailClient().GetMailInfo(tLoot.nMailID)
+		if mail then
+			if tLoot.nIndex then
+				mail.TakeItem(tLoot.nIndex)
+			else
+				mail.TakeMoney()
+			end
+			if not mail.bReadFlag then
+				mail.Read()
+			end
+		end
+		-- 移除收取队列
+		table.remove(AH_MailBank.aLootQueue, 1)
+		AH_MailBank.nLastLootTime = GetTime()
+		AH_MailBank.tLootQueue[tLoot.nMailID .. "," .. (tLoot.nIndex or "money")] = nil
+	else -- 不符合条件时中断并清空收件队列
+		AH_MailBank.aLootQueue = {}
+		AH_MailBank.tLootQueue = {}
+		AH_Library.BreatheCall("LootingBreathe")
+	end
+end
+
 -- 取附件
 -- AH_MailBank.LootMailItem(107, 1)
 -- AH_MailBank.LootMailItem(107, "all")
@@ -565,6 +597,7 @@ function AH_MailBank.LootMailItem(nMailID, nIndex)
 			table.insert(AH_MailBank.aLootQueue, {nMailID = nMailID})
 		end
 	end
+	AH_Library.BreatheCall("LootingBreathe", LootingBreathe)
 end
 
 function AH_MailBank.LootPage()
@@ -759,33 +792,6 @@ function AH_MailBank.OnFrameCreate()
 	end
 	hBg:FormatAllItemPos()
 	hBox:FormatAllItemPos()
-end
-
-function AH_MailBank.OnFrameBreathe()
-	if not IsOfflineMail() -- 离线邮件不收件
-	and #AH_MailBank.aLootQueue > 0 -- 确定收件队列不为空
-	and GetTime() - AH_MailBank.nLastLootTime > GetPingValue() -- 取附件得间隔一定时间，否则无法全部取出，需要加上延迟
-	and AH_MailBank.dwMailNpcID and GetNpc(AH_MailBank.dwMailNpcID) -- 确保信使NPC可见
-	and GetCharacterDistance(UI_GetClientPlayerID(), AH_MailBank.dwMailNpcID) / 64 < 6 -- 限制距离取件
-	-- and #AH_Library.GetPlayerBagFreeBoxList() > 0 -- 确保背包不空
-	then
-		local tLoot = AH_MailBank.aLootQueue[1]
-		local mail = GetMailClient().GetMailInfo(tLoot.nMailID)
-		if mail then
-			if tLoot.nIndex then
-				mail.TakeItem(tLoot.nIndex)
-			else
-				mail.TakeMoney()
-			end
-			if not mail.bReadFlag then
-				mail.Read()
-			end
-		end
-		-- 移除收取队列
-		table.remove(AH_MailBank.aLootQueue, 1)
-		AH_MailBank.nLastLootTime = GetTime()
-		AH_MailBank.tLootQueue[tLoot.nMailID .. "," .. (tLoot.nIndex or "money")] = nil
-	end
 end
 
 function AH_MailBank.OnEditChanged()
@@ -1141,6 +1147,7 @@ RegisterEvent("MAIL_LIST_UPDATE", function()
 	local frame = Station.Lookup("Normal/MailPanel")
 	if frame and frame:IsVisible() then
 		local szName = GetClientPlayer().szName
+		AH_MailBank.szCurRole = szName
 		AH_MailBank.tItemCache[szName] = AH_MailBank.SaveItemCache(true)
 		AH_MailBank.LoadMailData(Station.Lookup("Normal/AH_MailBank"), AH_MailBank.szCurRole, AH_MailBank.nCurIndex)
 		AH_MailBank.ReFilter(AH_MailBank.GetFrame())
