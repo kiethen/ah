@@ -69,7 +69,7 @@ local tRecipeSkill = {
 	{L("STR_TIP_TAILORING"), 5},
 	{L("STR_TIP_FOUNDING"), 6},
 	{L("STR_TIP_MEDICINE"), 7},
-	{L("STR_TIP_RECASTING"), 14}
+	--{L("STR_TIP_RECASTING"), 14}
 }
 
 local tPosionType = {
@@ -892,9 +892,9 @@ function AH_Retrieval.OnSearchType(frame, szType, szSubType)
 	elseif StringFindW(szKey, L("STR_RETRIEVAL_THERAPY")) then
 		szKey = StringReplaceW(szKey, L("STR_RETRIEVAL_THERAPYPOWER"), L("STR_RETRIEVAL_CURE"))
 	end
-	if szType == L("STR_RETRIEVAL_EQUIPREFINING") then
+	--[[if szType == L("STR_RETRIEVAL_EQUIPREFINING") then
 		szKey = szSubType
-	end
+	end]]
 	AH_Retrieval.UpdateList(frame, bSub, szKey)
 	--Output(bSub, szKey)
 end
