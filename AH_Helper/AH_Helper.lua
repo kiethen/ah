@@ -52,6 +52,7 @@ AH_Helper = {
 	tBidderNameColor = {0, 200, 0},
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
+	szDataPathCDiamond = "\\Interface\\AH\\AH_Base\\data\\ahcdiamond.jx3dat",
 	szVersion = "3.3.0",
 }
 
@@ -61,6 +62,7 @@ AH_Helper = {
 --------------------------------------------------------
 local tBidTime = {}
 local tTempSellPrice = {}
+local tTempCDiamondSellPrice = {}
 local bFilterd = false
 local bHooked = false
 local bAutoSearch = false
@@ -404,7 +406,7 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 		end
 		if MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) ~= 0 then
 			local tBuyPrice = MoneyOptDiv(hItem.tBuyPrice, hItem.nCount)
-			--最低一口
+			--最低一口价
 			if MoneyOptCmp(AH_Helper.tItemPrice[szKey][1], tBuyPrice) == 1 then
 				AH_Helper.tItemPrice[szKey][1] = tBuyPrice
 				--[[if bAutoSearch then
@@ -413,6 +415,16 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 					local szItem = MakeItemInfoLink(string.format("[%s]", hItem.szItemName), string.format("font=10 %s", szColor), item.nVersion, item.dwTabType, item.dwIndex)
 					AH_Library.Message({szItem, L("STR_HELPER_PRICE3"), szMoney}, "MONEY")
 				end]]
+			end
+			-- 五彩石最低一口价
+			if item.nGenre == ITEM_GENRE.COLOR_DIAMOND then
+				local nLevel = item.nDetail
+				if AH_Helper.tCDiamondPrice[nLevel] == nil or AH_Helper.tCDiamondPrice[nLevel][2] ~= AH_Helper.nVersion then
+					AH_Helper.tCDiamondPrice[nLevel] = {NO_BID_PRICE, AH_Helper.nVersion}
+				end
+			 	if MoneyOptCmp(AH_Helper.tCDiamondPrice[nLevel][1], tBuyPrice) == 1 then
+					AH_Helper.tCDiamondPrice[nLevel][1] = tBuyPrice
+				end
 			end
 		end
 	end
@@ -548,7 +560,6 @@ function AuctionPanel.GetItemSellInfo(szItemName)
 	local item = GetPlayerItem(GetClientPlayer(), box.dwBox, box.dwX)
 	local szKey = (szItemName == L("STR_HELPER_BOOK")) and szText or item.nUiId	--书籍名字转化
     if AH_Helper.szDefaultValue == "Btn_Min" then
-		AH_Library.Message(L("STR_HELPER_LOWPRICE"))
 		local function GetSellInfo(szName, tPrice)
 			local u = {szName = szName, tBidPrice = tPrice[1], tBuyPrice = tPrice[1], szTime = AH_Helper.szDefaultTime}
 			if AH_Helper.bLowestPrices then
@@ -568,11 +579,13 @@ function AuctionPanel.GetItemSellInfo(szItemName)
 			return u
 		end
 		if tTempSellPrice[szKey] then
+			AH_Library.Message(L("STR_HELPER_LOWPRICE"))
 			local tPrice = {tTempSellPrice[szKey]}
 			return GetSellInfo(szKey, tPrice)
 		else
 			for k, v in pairs(AH_Helper.tItemPrice) do
 				if szKey == k and MoneyOptCmp(v[1], NO_BID_PRICE) ~= 0 then
+					AH_Library.Message(L("STR_HELPER_LOWPRICE"))
 					if type(szKey) == "string" then
 						return GetSellInfo(szKey, v)
 					else
@@ -581,16 +594,26 @@ function AuctionPanel.GetItemSellInfo(szItemName)
 				end
 			end
 		end
-		AH_Library.Message(L("STR_HELPER_NOITEMPRICE"))
+		if item.nGenre == ITEM_GENRE.COLOR_DIAMOND then
+			local tPrice = AH_Helper.tCDiamondPrice[item.nDetail]
+			if tPrice and MoneyOptCmp(tPrice[1], NO_BID_PRICE) ~= 0 then
+				AH_Library.Message(L("STR_HELPER_CDIAMONDPRICE"))
+				if type(szKey) == "string" then
+					return GetSellInfo(szKey, tPrice)
+				else
+					return GetSellInfo(szItemName, tPrice)
+				end
+			end
+		end
 	else
-		AH_Library.Message(L("STR_HELPER_SYSTEMPRICE"))
 		for k, v in pairs(AuctionPanel.tItemSellInfoCache) do
 			if v.szName == szItemName then
+				AH_Library.Message(L("STR_HELPER_SYSTEMPRICE"))
 				return v
 			end
 		end
-		AH_Library.Message(L("STR_HELPER_NOITEMPRICE"))
     end
+	AH_Library.Message(L("STR_HELPER_NOITEMPRICE"))
 	return nil
 end
 
@@ -1614,13 +1637,16 @@ AuctionPanel = protect(AuctionPanel)
 RegisterEvent("LOGIN_GAME", function()
 	if IsFileExist(AH_Helper.szDataPath) then
 		AH_Helper.tItemPrice = LoadLUAData(AH_Helper.szDataPath) or {}
+		AH_Helper.tCDiamondPrice = LoadLUAData(AH_Helper.szDataPathCDiamond) or {}
 	end
 end)
 
 RegisterEvent("GAME_EXIT", function()
 	SaveLUAData(AH_Helper.szDataPath, AH_Helper.tItemPrice)
+	SaveLUAData(AH_Helper.szDataPathCDiamond, AH_Helper.tCDiamondPrice)
 end)
 
 RegisterEvent("PLAYER_EXIT_GAME", function()
 	SaveLUAData(AH_Helper.szDataPath, AH_Helper.tItemPrice)
+	SaveLUAData(AH_Helper.szDataPathCDiamond, AH_Helper.tCDiamondPrice)
 end)
