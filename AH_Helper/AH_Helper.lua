@@ -195,6 +195,7 @@ AH_Helper.UpdateSaleInfoOrg = AuctionPanel.UpdateSaleInfo
 AH_Helper.ExchangeBagAndAuctionItemOrg = AuctionPanel.ExchangeBagAndAuctionItem
 AH_Helper.AuctionBuyOrg = AuctionPanel.AuctionBuy
 AH_Helper.OnCheckBoxCheckOrg = AuctionPanel.OnCheckBoxCheck
+AH_Helper.SetItemNameOrg = AuctionPanel.SetItemName
 --------------------------------------------------------
 -- 系统AH函数重构
 --------------------------------------------------------
@@ -783,6 +784,15 @@ end
 function AuctionPanel.OnCheckBoxCheck()
 	szSellerSearch = ""
 	return AH_Helper.OnCheckBoxCheckOrg()
+end
+
+-- 修复搜索页没有激活不能搜索的问题
+function AuctionPanel.SetItemName(...)
+	local hPageSet = Station.Lookup("Normal/AuctionPanel/PageSet_Totle")
+	if hPageSet:GetActivePage():GetName() ~= "Page_Business" then
+		hPageSet:ActivePage("Page_Business")
+	end
+	return AH_Helper.SetItemNameOrg(...)
 end
 
 --[[function AuctionPanel.ShowNotice(szNotice, bSure, fun, bCancel, bText)
