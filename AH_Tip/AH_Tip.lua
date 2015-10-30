@@ -34,8 +34,8 @@ local tRecipeSkill = {
 	{L("STR_TIP_COOKING"), 4},
 	{L("STR_TIP_TAILORING"), 5},
 	{L("STR_TIP_FOUNDING"), 6},
-	{L("STR_TIP_MEDICINE"), 7},
-	{L("STR_TIP_RECASTING"), 14}
+	{L("STR_TIP_MEDICINE"), 7}
+	--{L("STR_TIP_RECASTING"), 14}
 }
 
 local function FormatTipEx(h, szText, szTip)
@@ -244,10 +244,11 @@ end
 
 function AH_Tip.GetRecipeTip(player, item)
 	local szTip, bFlag = "", false
+	local szOuter, szInner = "", ""
 	if IsAltKeyDown() or IsShiftKeyDown() or AH_Tip.bShowTipEx then
 		local szItemName = GetItemNameByItem(item)
 		if AH_Tip.bShowLearned then
-			local szOuter, szInner = GetFormatText("\n" .. L("STR_TIP_RECIPELEARN"), 165), ""
+			szOuter, szInner = GetFormatText("\n" .. L("STR_TIP_RECIPELEARN"), 165), ""
 			for k, v in ipairs(tRecipeSkill) do
 				if player.IsProfessionLearnedByCraftID(v[2]) then
 					local tRecipe = AH_Tip.GetRecipeByItemName(v[2], szItemName)

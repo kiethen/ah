@@ -478,7 +478,7 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 	hItem:Lookup(tInfo.aBidText[1]):SetText(nGold)
 	hItem:Lookup(tInfo.aBidText[2]):SetText(nSliver)
 	hItem:Lookup(tInfo.aBidText[3]):SetText(nCopper)]]
-    local smoney = AH_Helper.bExVersion and GetMoneyTextEx(hItem.tBidPrice, "font=18") or smoney = GetMoneyText(hItem.tBidPrice, "font=18", "all3", nil, 18)
+    local smoney = AH_Helper.bExVersion and GetMoneyTextEx(hItem.tBidPrice, "font=18") or GetMoneyText(hItem.tBidPrice, "font=18", "all3", nil, 18)
 	local hMoney = hItem:Lookup(tInfo.aBidText[1])
 	hMoney:Clear()
 	hMoney:AppendItemFromString(smoney)
