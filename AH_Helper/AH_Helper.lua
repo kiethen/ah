@@ -41,12 +41,14 @@ AH_Helper = {
 	bFormatMoney = false,
 	bDBCtrlSell = false,
 	bGuard = true,
+    bExVersion = false,
 
 	tItemFavorite = {},
 	tBlackList = {},
 	tSellerList = {},
 	tItemHistory = {},
 	tItemPrice = {},
+    tCDiamondPrice = {},
 
 	tRealTimeColor = {255, 0, 0},
 	tBidderNameColor = {0, 200, 0},
@@ -86,6 +88,7 @@ RegisterCustomData("AH_Helper.bFastBid")
 RegisterCustomData("AH_Helper.bFastBuy")
 RegisterCustomData("AH_Helper.bFastCancel")
 RegisterCustomData("AH_Helper.bGuard")
+RegisterCustomData("AH_Helper.bExVersion")
 RegisterCustomData("AH_Helper.bRealTime")
 RegisterCustomData("AH_Helper.bBidderName")
 RegisterCustomData("AH_Helper.bDBClickFastBuy")
@@ -249,6 +252,24 @@ local function ConvertMoney(editGB, editG, editS, editC, bUnpack)
 		return (nGoldB * 10000 + nGold), nSilver, nCopper
 	end
 	return PackMoney( (nGoldB * 10000 + nGold), nSilver, nCopper )
+end
+
+local function GetMoneyTextEx(tMoney, szFont)
+    local szText = ""
+    local bCheckZero = true
+    local nMoney = PackMoney(tMoney.nGold, tMoney.nSilver, tMoney.nCopper)
+    local nGold, nSilver, nCopper = MoneyToGoldSilverAndCopper(nMoney)
+    if nGold ~= 0 then
+        szText = szText.."<text>text=\""..nGold.."\""..szFont.."</text><image>path=\"UI/Image/Common/Money.UITex\" frame=0</image>"
+        bCheckZero = false
+    end
+    
+    if not bCheckZero or nSilver ~= 0 then
+        szText = szText.."<text>text=\""..nSilver.."\""..szFont.."</text><image>path=\"UI/Image/Common/Money.UITex\" frame=2</image>"
+    end
+
+    szText = szText.."<text>text=\""..nCopper.."\""..szFont.."</text><image>path=\"UI/Image/Common/Money.UITex\" frame=1</image>"
+    return szText
 end
 
 --[[local function FormatBigMoney(nGold)
@@ -457,8 +478,7 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 	hItem:Lookup(tInfo.aBidText[1]):SetText(nGold)
 	hItem:Lookup(tInfo.aBidText[2]):SetText(nSliver)
 	hItem:Lookup(tInfo.aBidText[3]):SetText(nCopper)]]
-	local smoney = GetMoneyText(hItem.tBidPrice, "font=18", "all3", nil, 18)
-    smoney = string.gsub(smoney,"frame=27 w=%d+ h=%d+", string.format("frame=27 w=%d h=%d", 14, 14))
+    local smoney = AH_Helper.bExVersion and GetMoneyTextEx(hItem.tBidPrice, "font=18") or smoney = GetMoneyText(hItem.tBidPrice, "font=18", "all3", nil, 18)
 	local hMoney = hItem:Lookup(tInfo.aBidText[1])
 	hMoney:Clear()
 	hMoney:AppendItemFromString(smoney)
@@ -469,8 +489,7 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 		hItem:Lookup(tInfo.aBuyText[1]):SetText(nGold)
 		hItem:Lookup(tInfo.aBuyText[2]):SetText(nSliver)
 		hItem:Lookup(tInfo.aBuyText[3]):SetText(nCopper)]]
-		smoney = GetMoneyText(hItem.tBuyPrice, "font=18", "all3", nil, 18)
-        smoney = string.gsub(smoney,"frame=27 w=%d+ h=%d+", string.format("frame=27 w=%d h=%d", 14, 14))
+        smoney = AH_Helper.bExVersion and GetMoneyTextEx(hItem.tBuyPrice, "font=18") or GetMoneyText(hItem.tBuyPrice, "font=18", "all3", nil, 18)
 		hMoney = hItem:Lookup(tInfo.aBuyText[1])
 		hMoney:Clear()
 		hMoney:AppendItemFromString(smoney)
@@ -1032,16 +1051,14 @@ function AH_Helper.UpdatePriceInfo(hList, szDataType)
 			hItem:Lookup(tInfo.aBuyText[2]):SetText(nSliver)
 			hItem:Lookup(tInfo.aBuyText[3]):SetText(nCopper)
 		end]]
-		local smoney = GetMoneyText(tBidPrice, "font=18", "all3", nil, 18)
-        smoney = string.gsub(smoney,"frame=27 w=%d+ h=%d+", string.format("frame=27 w=%d h=%d", 14, 14))
+		local smoney = AH_Helper.bExVersion and GetMoneyTextEx(tBidPrice, "font=18") or GetMoneyText(tBidPrice, "font=18", "all3", nil, 18)
 		local hMoney = hItem:Lookup(tInfo.aBidText[1])
 		hMoney:Clear()
 		hMoney:AppendItemFromString(smoney)
 		hMoney:FormatAllItemPos()
 
 		if MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) ~= 0 then
-			smoney = GetMoneyText(tBuyPrice, "font=18", "all3", nil, 18)
-            smoney = string.gsub(smoney,"frame=27 w=%d+ h=%d+", string.format("frame=27 w=%d h=%d", 14, 14))
+			smoney = AH_Helper.bExVersion and GetMoneyTextEx(tBuyPrice, "font=18") or GetMoneyText(tBuyPrice, "font=18", "all3", nil, 18)
 			hMoney = hItem:Lookup(tInfo.aBuyText[1])
 			hMoney:Clear()
 			hMoney:AppendItemFromString(smoney)
