@@ -914,11 +914,14 @@ function AuctionPanel.ExchangeBagAndAuctionItem(boxBag)
 		local hPageSet = frame:Lookup("PageSet_Totle")
 		local page  = frame:Lookup("PageSet_Totle/Page_Auction")
 		local hWnd  = page:Lookup("Wnd_Sale")
+		local box = hWnd:Lookup("", "Box_Item")
 		if hPageSet:GetActivePage():GetName() ~= "Page_Auction" then
+			RemoveUILockItem("Auction")
+			AuctionPanel.ClearBox(box)
+			AuctionPanel.UpdateSaleInfo(frame, true)
 			hPageSet:ActivePage("Page_Auction")
 		end
 		if page and page:IsVisible() and hWnd and hWnd:IsVisible() then
-			local box = hWnd:Lookup("", "Box_Item")
 			AuctionPanel.OnExchangeBoxItem(box, boxBag)
 		end
 	end
