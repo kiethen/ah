@@ -257,19 +257,18 @@ end
 local function GetMoneyTextEx(tMoney, szFont)
     local szText = ""
     local bCheckZero = true
-    local nMoney = PackMoney(tMoney.nGold, tMoney.nSilver, tMoney.nCopper)
-    local nGold, nSilver, nCopper = MoneyToGoldSilverAndCopper(nMoney)
+    local nGold, nSilver, nCopper = tMoney.nGold, tMoney.nSilver, tMoney.nCopper
     if nGold ~= 0 then
         szText = szText.."<text>text=\""..nGold.."\""..szFont.."</text><image>path=\"UI/Image/Common/Money.UITex\" frame=0</image>"
         bCheckZero = false
     end
-    
+
     if not bCheckZero or nSilver ~= 0 then
         szText = szText.."<text>text=\""..nSilver.."\""..szFont.."</text><image>path=\"UI/Image/Common/Money.UITex\" frame=2</image>"
     end
 
     szText = szText.."<text>text=\""..nCopper.."\""..szFont.."</text><image>path=\"UI/Image/Common/Money.UITex\" frame=1</image>"
-    return szText
+	return szText
 end
 
 --[[local function FormatBigMoney(nGold)
@@ -1105,7 +1104,7 @@ function AH_Helper.AddWidget(frame)
 			end
 		end
 	end
-	
+
 	if not frame:Lookup("Btn_Setting") then
 		local btnSetting = temp:Lookup("Btn_Setting")
 		if btnSetting then
@@ -1258,6 +1257,7 @@ function AH_Helper.AddWidget(frame)
 					--{szOption = L("STR_HELPER_FORMATMONEY"), bCheck = true, bChecked = AH_Helper.bFormatMoney, fnAction = function() AH_Helper.bFormatMoney = not AH_Helper.bFormatMoney end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_FORMATMONEYTIPS")) end,},
 					{szOption = L("STR_HELPER_GUARD"), bCheck = true, bChecked = AH_Helper.bGuard, fnAction = function() AH_Helper.bGuard = not AH_Helper.bGuard end,},
 					{szOption = L("STR_HELPER_SHOWTIPEX"), bCheck = true, bChecked = _G["AH_Tip_Loaded"] and AH_Tip.bShowTipEx or false, fnAction = function() if _G["AH_Tip_Loaded"] then AH_Tip.bShowTipEx = not AH_Tip.bShowTipEx end end, fnDisable = function() return not _G["AH_Tip_Loaded"] end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_SHOWTIPEXTIPS")) end,},
+					{szOption = L("STR_HELPER_EXVERSIONPRICE"), bCheck = true, bChecked = AH_Helper.bExVersion, fnAction = function() AH_Helper.bExVersion = not AH_Helper.bExVersion AH_Helper.UpdateList() end,},
 					{ bDevide = true },
 					{szOption = L("STR_HELPER_RESETPRICE"), fnAction = function() AH_Helper.tItemPrice = {} AH_Library.Message(L("STR_HELPER_RESETPRICETIPS")) end,},
 				}
