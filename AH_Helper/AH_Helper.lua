@@ -198,6 +198,7 @@ AH_Helper.UpdateSaleInfoOrg = AuctionPanel.UpdateSaleInfo
 AH_Helper.ExchangeBagAndAuctionItemOrg = AuctionPanel.ExchangeBagAndAuctionItem
 AH_Helper.AuctionBuyOrg = AuctionPanel.AuctionBuy
 AH_Helper.OnCheckBoxCheckOrg = AuctionPanel.OnCheckBoxCheck
+AH_Helper.SetItemNameOrg = AuctionPanel.SetItemName
 --------------------------------------------------------
 -- 系统AH函数重构
 --------------------------------------------------------
@@ -805,6 +806,15 @@ function AuctionPanel.OnCheckBoxCheck()
 	return AH_Helper.OnCheckBoxCheckOrg()
 end
 
+-- 修复搜索页没有激活不能搜索的问题
+function AuctionPanel.SetItemName(...)
+	local hPageSet = Station.Lookup("Normal/AuctionPanel/PageSet_Totle")
+	if hPageSet:GetActivePage():GetName() ~= "Page_Business" then
+		hPageSet:ActivePage("Page_Business")
+	end
+	return AH_Helper.SetItemNameOrg(...)
+end
+
 --[[function AuctionPanel.ShowNotice(szNotice, bSure, fun, bCancel, bText)
 	if AH_Helper.bNoAllPrompt then
 		fun()
@@ -924,11 +934,14 @@ function AuctionPanel.ExchangeBagAndAuctionItem(boxBag)
 		local hPageSet = frame:Lookup("PageSet_Totle")
 		local page  = frame:Lookup("PageSet_Totle/Page_Auction")
 		local hWnd  = page:Lookup("Wnd_Sale")
+		local box = hWnd:Lookup("", "Box_Item")
 		if hPageSet:GetActivePage():GetName() ~= "Page_Auction" then
+			RemoveUILockItem("Auction")
+			AuctionPanel.ClearBox(box)
+			AuctionPanel.UpdateSaleInfo(frame, true)
 			hPageSet:ActivePage("Page_Auction")
 		end
 		if page and page:IsVisible() and hWnd and hWnd:IsVisible() then
-			local box = hWnd:Lookup("", "Box_Item")
 			AuctionPanel.OnExchangeBoxItem(box, boxBag)
 		end
 	end
