@@ -472,7 +472,7 @@ function AH_MailBank.OnUpdate()
 	elseif not frame or not frame:IsVisible() then
 		bMailHooked, bInitMail = false, false
 		if not IsOfflineMail() then
-			AH_MailBank.Close()
+			AH_MailBank.ClosePanel()
 		end
 	end
 
