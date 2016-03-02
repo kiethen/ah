@@ -55,9 +55,8 @@ AH_Helper = {
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
 	szDataPathCDiamond = "\\Interface\\AH\\AH_Base\\data\\ahcdiamond.jx3dat",
-	szVersion = "3.3.0",
+	szVersion = "3.4.0",
 }
-
 
 --------------------------------------------------------
 -- 交易行数据缓存
@@ -1119,6 +1118,7 @@ function AH_Helper.AddWidget(frame)
 	end
 
 	if not frame:Lookup("Btn_Setting") then
+		local nEggIndex = 0
 		local btnSetting = temp:Lookup("Btn_Setting")
 		if btnSetting then
 			btnSetting:ChangeRelation(frame, true, true)
@@ -1126,6 +1126,16 @@ function AH_Helper.AddWidget(frame)
 			btnSetting:Lookup("", ""):Lookup("Text_Setting"):SetText(L("STR_HELPER_SETTING"))
 			btnSetting.OnLButtonClick = function()
 				AH.TogglePanel()
+			end
+			btnSetting.OnRButtonClick = function()
+				if IsCtrlKeyDown() then
+					nEggIndex = nEggIndex + 1
+					if nEggIndex == 10 then
+						AH_Helper.bExVersion = not AH_Helper.bExVersion
+						AH_Helper.UpdateList()
+						nEggIndex = 0
+					end
+				end
 			end
 		end
 	end
@@ -1270,7 +1280,7 @@ function AH_Helper.AddWidget(frame)
 					--{szOption = L("STR_HELPER_FORMATMONEY"), bCheck = true, bChecked = AH_Helper.bFormatMoney, fnAction = function() AH_Helper.bFormatMoney = not AH_Helper.bFormatMoney end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_FORMATMONEYTIPS")) end,},
 					{szOption = L("STR_HELPER_GUARD"), bCheck = true, bChecked = AH_Helper.bGuard, fnAction = function() AH_Helper.bGuard = not AH_Helper.bGuard end,},
 					{szOption = L("STR_HELPER_SHOWTIPEX"), bCheck = true, bChecked = _G["AH_Tip_Loaded"] and AH_Tip.bShowTipEx or false, fnAction = function() if _G["AH_Tip_Loaded"] then AH_Tip.bShowTipEx = not AH_Tip.bShowTipEx end end, fnDisable = function() return not _G["AH_Tip_Loaded"] end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_SHOWTIPEXTIPS")) end,},
-					{szOption = L("STR_HELPER_EXVERSIONPRICE"), bCheck = true, bChecked = AH_Helper.bExVersion, fnAction = function() AH_Helper.bExVersion = not AH_Helper.bExVersion AH_Helper.UpdateList() end,},
+					--{szOption = L("STR_HELPER_EXVERSIONPRICE"), bCheck = true, bChecked = AH_Helper.bExVersion, fnAction = function() AH_Helper.bExVersion = not AH_Helper.bExVersion AH_Helper.UpdateList() end,},
 					{ bDevide = true },
 					{szOption = L("STR_HELPER_RESETPRICE"), fnAction = function() AH_Helper.tItemPrice = {} AH_Library.Message(L("STR_HELPER_RESETPRICETIPS")) end,},
 				}
