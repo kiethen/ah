@@ -1119,8 +1119,8 @@ function AH_MailBank.ClosePanel()
 	local frame = Station.Lookup("Normal/AH_MailBank")
 	if frame and frame:IsVisible() then
 		frame:Hide()
+		PlaySound(SOUND.UI_SOUND,g_sound.CloseFrame)
 	end
-	PlaySound(SOUND.UI_SOUND,g_sound.CloseFrame)
 end
 
 RegisterEvent("LOGIN_GAME", function()
