@@ -347,137 +347,128 @@ function AH_MailBank.GetMailItem(mail)
 	return tItems
 end
 
-function AH_MailBank.OnUpdate()
+function AH_MailBank.HookMailPanel()
 	local frame = Station.Lookup("Normal/MailPanel")
 	if frame and frame:IsVisible() then
-		if not bMailHooked then	--邮件界面添加按钮
+		local page = frame:Lookup("PageSet_Total/Page_Receive")
+		local temp = Wnd.OpenWindow("Interface\\AH\\AH_Base\\AH_Widget.ini")
+		if not page:Lookup("Btn_MailBank") then
+			local hBtnMailBank = temp:Lookup("Btn_MailBank")
+			if hBtnMailBank then
+				hBtnMailBank:ChangeRelation(page, true, true)
+				hBtnMailBank:SetRelPos(50, 8)
+				hBtnMailBank:Lookup("", ""):Lookup("Text_MailBank"):SetText(L("STR_MAILBANK_MAILTIP1"))
+				hBtnMailBank.OnLButtonClick = function()
+					if not AH_MailBank.IsPanelOpened() then
+						AH_MailBank.bMail = true
+						AH_MailBank.nFilterType = 1
+						AH_MailBank.OpenPanel()
+					else
+						AH_MailBank.ClosePanel()
+					end
+				end
+				hBtnMailBank:Enable(false)
+			end
+			local hBtnLootAll = temp:Lookup("Btn_Loot")
+			if hBtnLootAll then
+				hBtnLootAll:ChangeRelation(page, true, true)
+				hBtnLootAll:SetRelPos(680, 380)
+				hBtnLootAll.OnLButtonClick = function()
+					--AH_MailBank.LootAllItem()
+					local dwID = Station.Lookup("Normal/MailPanel"):Lookup("PageSet_Total/Page_Receive").dwShowID
+					AH_MailBank.LootMailItem(dwID, "all")
+				end
+				hBtnLootAll.OnMouseEnter = function()
+					local x, y = this:GetAbsPos()
+					local w, h = this:GetSize()
+					local szTip = GetFormatText(L("STR_MAILBANK_LOOTALL"), 162)
+					OutputTip(szTip, 400, {x, y, w, h})
+				end
+				hBtnLootAll.OnMouseLeave = function()
+					HideTip()
+				end
+			end
+		end
+		page = frame:Lookup("PageSet_Total/Page_Send")
+		if not page:Lookup("Check_AutoExange") then	--添加选择框
+			local hCheck = temp:Lookup("Check_AutoExange")
+			if hCheck then
+				hCheck:ChangeRelation(page, true, true)
+				hCheck:SetRelPos(400, 480)
+				hCheck:Lookup("", ""):Lookup("Text_AutoExange"):SetText(L("STR_MAILBANK_AUTOEXANGE"))
+				hCheck:Check(AH_MailBank.bAutoExange)
+				hCheck.OnCheckBoxCheck = function()
+					AH_MailBank.bAutoExange = true
+				end
+				hCheck.OnCheckBoxUncheck = function()
+					AH_MailBank.bAutoExange = false
+				end
+			end
+		end
+		local hBtnSend = page:Lookup("Btn_Deliver") --Hook发送按钮
+		hBtnSend.OnLButtonDown = function()
+			AH_MailBank.tSendCache = {}
+			if AH_MailBank.bAutoExange then
+				--收信人
+				local szReceiver = page:Lookup("Edit_Name"):GetText()
+				if szReceiver and szReceiver ~= AH_MailBank.szReceiver then
+					AH_MailBank.szReceiver = szReceiver
+				end
+				--物品
+				local handle = page:Lookup("", "Handle_Write")
+				for i = 0, 7, 1 do
+					local box = handle:Lookup("Box_Item"..i)
+					if not box:IsEmpty() then
+						local nUiId, dwBox, dwX = box:GetObjectData()
+						local nCount = box:GetOverText(0)
+						nCount = (nCount == "") and 1 or tonumber(nCount)
+						table.insert(AH_MailBank.tSendCache, {nUiId, nCount})
+					end
+				end
+				--付费信件
+				local bPay = page:Lookup("CheckBox_PayMail"):IsCheckBoxChecked()
+				AH_MailBank.bPay = bPay
+				if bPay then
+					local szGoldPay = page:Lookup("Edit_GoldPay"):GetText()
+					local szSilverPay = page:Lookup("Edit_SilverPay"):GetText()
+					local szCopperPay = page:Lookup("Edit_CopperPay"):GetText()
+					AH_MailBank.tMoneyPayCache = {
+						nGoldPay = (szGoldPay ~= "") and tonumber(szGoldPay) or 0,
+						nSilverPay = (szSilverPay ~= "") and tonumber(szSilverPay) or 0,
+						nCopperPay = (szCopperPay ~= "") and tonumber(szCopperPay) or 0,
+					}
+				else	--寄出金钱
+					local szGold = page:Lookup("Edit_Gold"):GetText()
+					local szSilver = page:Lookup("Edit_Silver"):GetText()
+					local szCopper = page:Lookup("Edit_Copper"):GetText()
+					AH_MailBank.tMoneyCache = {
+						nGold = (szGold ~= "") and tonumber(szGold) or 0,
+						nSilver = (szSilver ~= "") and tonumber(szSilver) or 0,
+						nCopper = (szCopper ~= "") and tonumber(szCopper) or 0,
+					}
+				end
+			end
+		end
+
+		AH_MailBank.dwMailNpcID = Station.Lookup("Normal/Target").dwID
+
+		Wnd.CloseWindow(temp)
+		
+		local hTitle = frame:Lookup("PageSet_Total/Page_Receive", "Text_ReceiveTitle")
+		local szTitle = hTitle:GetText()
+		hTitle:SetText(L("STR_MAILBANK_REQUEST"))
+		AH_Library.DelayCall(3 + GetPingValue() / 2000, function()
 			local page = frame:Lookup("PageSet_Total/Page_Receive")
-			local temp = Wnd.OpenWindow("Interface\\AH\\AH_Base\\AH_Widget.ini")
-			if not page:Lookup("Btn_MailBank") then
-				local hBtnMailBank = temp:Lookup("Btn_MailBank")
-				if hBtnMailBank then
-					hBtnMailBank:ChangeRelation(page, true, true)
-					hBtnMailBank:SetRelPos(50, 8)
-					hBtnMailBank:Lookup("", ""):Lookup("Text_MailBank"):SetText(L("STR_MAILBANK_MAILTIP1"))
-					hBtnMailBank.OnLButtonClick = function()
-						if not AH_MailBank.IsPanelOpened() then
-							AH_MailBank.bMail = true
-							AH_MailBank.nFilterType = 1
-							AH_MailBank.OpenPanel()
-						else
-							AH_MailBank.ClosePanel()
-						end
-					end
-					hBtnMailBank:Enable(false)
-				end
-				local hBtnLootAll = temp:Lookup("Btn_Loot")
-				if hBtnLootAll then
-					hBtnLootAll:ChangeRelation(page, true, true)
-					hBtnLootAll:SetRelPos(680, 380)
-					hBtnLootAll.OnLButtonClick = function()
-						--AH_MailBank.LootAllItem()
-						local dwID = Station.Lookup("Normal/MailPanel"):Lookup("PageSet_Total/Page_Receive").dwShowID
-						AH_MailBank.LootMailItem(dwID, "all")
-					end
-					hBtnLootAll.OnMouseEnter = function()
-						local x, y = this:GetAbsPos()
-						local w, h = this:GetSize()
-						local szTip = GetFormatText(L("STR_MAILBANK_LOOTALL"), 162)
-						OutputTip(szTip, 400, {x, y, w, h})
-					end
-					hBtnLootAll.OnMouseLeave = function()
-						HideTip()
-					end
-				end
-			end
-			page = frame:Lookup("PageSet_Total/Page_Send")
-			if not page:Lookup("Check_AutoExange") then	--添加选择框
-				local hCheck = temp:Lookup("Check_AutoExange")
-				if hCheck then
-					hCheck:ChangeRelation(page, true, true)
-					hCheck:SetRelPos(400, 480)
-					hCheck:Lookup("", ""):Lookup("Text_AutoExange"):SetText(L("STR_MAILBANK_AUTOEXANGE"))
-					hCheck:Check(AH_MailBank.bAutoExange)
-					hCheck.OnCheckBoxCheck = function()
-						AH_MailBank.bAutoExange = true
-					end
-					hCheck.OnCheckBoxUncheck = function()
-						AH_MailBank.bAutoExange = false
-					end
-				end
-			end
-			local hBtnSend = page:Lookup("Btn_Deliver") --Hook发送按钮
-			hBtnSend.OnLButtonDown = function()
-				AH_MailBank.tSendCache = {}
-				if AH_MailBank.bAutoExange then
-					--收信人
-					local szReceiver = page:Lookup("Edit_Name"):GetText()
-					if szReceiver and szReceiver ~= AH_MailBank.szReceiver then
-						AH_MailBank.szReceiver = szReceiver
-					end
-					--物品
-					local handle = page:Lookup("", "Handle_Write")
-					for i = 0, 7, 1 do
-						local box = handle:Lookup("Box_Item"..i)
-						if not box:IsEmpty() then
-							local nUiId, dwBox, dwX = box:GetObjectData()
-							local nCount = box:GetOverText(0)
-							nCount = (nCount == "") and 1 or tonumber(nCount)
-							table.insert(AH_MailBank.tSendCache, {nUiId, nCount})
-						end
-					end
-					--付费信件
-					local bPay = page:Lookup("CheckBox_PayMail"):IsCheckBoxChecked()
-					AH_MailBank.bPay = bPay
-					if bPay then
-						local szGoldPay = page:Lookup("Edit_GoldPay"):GetText()
-						local szSilverPay = page:Lookup("Edit_SilverPay"):GetText()
-						local szCopperPay = page:Lookup("Edit_CopperPay"):GetText()
-						AH_MailBank.tMoneyPayCache = {
-							nGoldPay = (szGoldPay ~= "") and tonumber(szGoldPay) or 0,
-							nSilverPay = (szSilverPay ~= "") and tonumber(szSilverPay) or 0,
-							nCopperPay = (szCopperPay ~= "") and tonumber(szCopperPay) or 0,
-						}
-					else	--寄出金钱
-						local szGold = page:Lookup("Edit_Gold"):GetText()
-						local szSilver = page:Lookup("Edit_Silver"):GetText()
-						local szCopper = page:Lookup("Edit_Copper"):GetText()
-						AH_MailBank.tMoneyCache = {
-							nGold = (szGold ~= "") and tonumber(szGold) or 0,
-							nSilver = (szSilver ~= "") and tonumber(szSilver) or 0,
-							nCopper = (szCopper ~= "") and tonumber(szCopper) or 0,
-						}
-					end
-				end
-			end
-
-			AH_MailBank.dwMailNpcID = Station.Lookup("Normal/Target").dwID
-
-			Wnd.CloseWindow(temp)
-			bMailHooked = true
-		end
-		--获取邮件
-		if not bInitMail then
-			local hTitle = frame:Lookup("PageSet_Total/Page_Receive", "Text_ReceiveTitle")
-			local szTitle = hTitle:GetText()
-			hTitle:SetText(L("STR_MAILBANK_REQUEST"))
-			AH_Library.DelayCall(3 + GetPingValue() / 2000, function()
-				local page = frame:Lookup("PageSet_Total/Page_Receive")
-				page:Lookup("Btn_MailBank"):Enable(true)
-				hTitle:SetText(szTitle)
-				FireEvent("MAIL_LIST_UPDATE")
-			end)
-			bInitMail = true
-		end
-	elseif not frame or not frame:IsVisible() then
-		bMailHooked, bInitMail = false, false
-		if not IsOfflineMail() then
-			AH_MailBank.ClosePanel()
-		end
+			page:Lookup("Btn_MailBank"):Enable(true)
+			hTitle:SetText(szTitle)
+			FireEvent("MAIL_LIST_UPDATE")
+		end)
 	end
+end
 
+function AH_MailBank.HookBagPanel()
 	local frame = Station.Lookup("Normal/BigBagPanel")
-	if not bBagHooked and frame and frame:IsVisible() then --背包界面添加一个按钮
+	if frame and frame:IsVisible() then --背包界面添加一个按钮
 		local temp = Wnd.OpenWindow("Interface\\AH\\AH_Base\\AH_Widget.ini")
 		if not frame:Lookup("Btn_Mail") then
 			local hBtnMail = temp:Lookup("Btn_Mail")
@@ -504,9 +495,30 @@ function AH_MailBank.OnUpdate()
 			end
 		end
 		Wnd.CloseWindow(temp)
-		bBagHooked = true
+	end
+end
+
+function AH_MailBank.OnUpdate()
+	local frame = Station.Lookup("Normal/MailPanel")
+	if frame and frame:IsVisible() then
+		--获取邮件
+		if not bInitMail then
+			local hTitle = frame:Lookup("PageSet_Total/Page_Receive", "Text_ReceiveTitle")
+			local szTitle = hTitle:GetText()
+			hTitle:SetText(L("STR_MAILBANK_REQUEST"))
+			AH_Library.DelayCall(3 + GetPingValue() / 2000, function()
+				local page = frame:Lookup("PageSet_Total/Page_Receive")
+				page:Lookup("Btn_MailBank"):Enable(true)
+				hTitle:SetText(szTitle)
+				FireEvent("MAIL_LIST_UPDATE")
+			end)
+			bInitMail = true
+		end
 	elseif not frame or not frame:IsVisible() then
-		bBagHooked = false
+		bInitMail = false
+		if not IsOfflineMail() then
+			AH_MailBank.ClosePanel()
+		end
 	end
 end
 
@@ -1143,6 +1155,14 @@ RegisterEvent("SEND_MAIL_RESULT", function()
 	end
 end)
 
+RegisterEvent("ON_FRAME_CREATE", function()
+	if arg0:GetName() == 'MailPanel' then
+		AH_MailBank.HookMailPanel()
+	elseif arg0:GetName() == "BigBagPanel" then
+		AH_MailBank.HookBagPanel()
+	end
+end)
+
 RegisterEvent("MAIL_LIST_UPDATE", function()
 	local frame = Station.Lookup("Normal/MailPanel")
 	if frame and frame:IsVisible() then
@@ -1166,4 +1186,4 @@ end
 
 RegisterMsgMonitor(FireMailListEvent, {"MSG_MONEY", "MSG_ITEM"})
 
-AH_Library.BreatheCall("ON_AH_MAILBANK_UPDATE", AH_MailBank.OnUpdate)
+--AH_Library.BreatheCall("ON_AH_MAILBANK_UPDATE", AH_MailBank.OnUpdate)
