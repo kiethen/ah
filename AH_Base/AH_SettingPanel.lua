@@ -47,19 +47,6 @@ function AH_SettingPanel.Init()
 			AH_Helper.bShowQualityLevel = arg
 		end
 		
-		--交易卫士
-		local checkbox_Guard = Kimochi(window, _Xml([[<CheckBox text="%s" check="%s" x="360" y="30" />]], L("STR_SETTING_GUARD"), tostring(AH_Helper.bGuard)))
-		Kimochi(window, _Xml([[<Label text="%s" x="492" y="30" w="30" />]], L("STR_SETTING_OVER")))
-		local textbox_Multiple = Kimochi(window, _Xml([[<TextBox text="%s" x="525" y="30" w="40" />]], AH_Helper.nMultiple)):enable(AH_Helper.bGuard)
-		Kimochi(window, _Xml([[<Label text="%s" x="575" y="30" />]], L("STR_SETTING_INTERCEPT")))
-		checkbox_Guard.click = function(arg)
-			AH_Helper.bGuard = arg
-			textbox_Multiple:enable(arg)
-		end
-		textbox_Multiple.change = function(arg)
-			AH_Helper.nMultiple = tonumber(arg)
-		end
-		
 		--实时竞拍倒计时
 		local checkbox_RealTime = Kimochi(window, _Xml([[<CheckBox text="%s" check="%s" y="60"/>]], L("STR_SETTING_REALTIME"), tostring(AH_Helper.bRealTime)))
 		checkbox_RealTime.click = function(arg)

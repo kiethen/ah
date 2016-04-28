@@ -162,7 +162,7 @@ function AH_Tip.HookBagItemBox(box)
 			end
 		end
 		--鼠标点击
-		if _G["AH_Spliter_Loaded"] then
+		--[[if _G["AH_Spliter_Loaded"] then
 			if not box.SetObjectStaringOrg then
 				box.SetObjectStaringOrg = box.SetObjectStaring
 			end
@@ -183,7 +183,7 @@ function AH_Tip.HookBagItemBox(box)
 				box:SetObjectPressedOrg(bPress)
 				bStarting = true
 			end
-		end
+		end]]
 	end
 end
 
@@ -272,6 +272,7 @@ function AH_Tip.GetRecipeTip(player, item)
 			szOuter, szInner = GetFormatText("\n" .. L("STR_TIP_RECIPEUNLEARN"), 166), ""
 			for k, v in ipairs(tRecipeSkill) do
 				local tRecipe = AH_Library.tMaterialALL[v[2]][szItemName]
+				tRecipe = "nil" and tRecipe or {}	--修复壮志凌云版本TIP无法显示的问题
 				if not IsTableEmpty(tRecipe) then
 					local temp = {}
 					for m, n in ipairs(tRecipe) do

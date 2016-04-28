@@ -21,7 +21,7 @@ AH_Helper = {
 	nPricePercentage = 0.95,
 	nDefaultPrices = 1,
 	nMaxHistory = 10,
-	nMultiple = 1.5,
+	--nMultiple = 1.5,
 
 	bShowQualityLevel = true,
 	bRealTime = true,
@@ -40,7 +40,7 @@ AH_Helper = {
 	--bSellNotice = false,
 	bFormatMoney = false,
 	bDBCtrlSell = false,
-	bGuard = true,
+	--bGuard = true,
     bExVersion = false,
 
 	tItemFavorite = {},
@@ -55,7 +55,7 @@ AH_Helper = {
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
 	szDataPathCDiamond = "\\Interface\\AH\\AH_Base\\data\\ahcdiamond.jx3dat",
-	szVersion = "3.4.0",
+	szVersion = "3.5.0",
 }
 
 --------------------------------------------------------
@@ -75,7 +75,7 @@ RegisterCustomData("AH_Helper.szDefaultValue")
 RegisterCustomData("AH_Helper.szDefaultTime")
 RegisterCustomData("AH_Helper.nDefaultPrices")
 RegisterCustomData("AH_Helper.nMaxHistory")
-RegisterCustomData("AH_Helper.nMultiple")
+--RegisterCustomData("AH_Helper.nMultiple")
 RegisterCustomData("AH_Helper.nPricePercentage")
 RegisterCustomData("AH_Helper.bFilterRecipe")
 RegisterCustomData("AH_Helper.bFilterBook")
@@ -86,7 +86,7 @@ RegisterCustomData("AH_Helper.bShowQualityLevel")
 RegisterCustomData("AH_Helper.bFastBid")
 RegisterCustomData("AH_Helper.bFastBuy")
 RegisterCustomData("AH_Helper.bFastCancel")
-RegisterCustomData("AH_Helper.bGuard")
+--RegisterCustomData("AH_Helper.bGuard")
 RegisterCustomData("AH_Helper.bExVersion")
 RegisterCustomData("AH_Helper.bRealTime")
 RegisterCustomData("AH_Helper.bBidderName")
@@ -195,7 +195,7 @@ AH_Helper.InitOrg = AuctionPanel.Init
 --AH_Helper.ShowNoticeOrg = AuctionPanel.ShowNotice	--去除免确认
 AH_Helper.UpdateSaleInfoOrg = AuctionPanel.UpdateSaleInfo
 AH_Helper.ExchangeBagAndAuctionItemOrg = AuctionPanel.ExchangeBagAndAuctionItem
-AH_Helper.AuctionBuyOrg = AuctionPanel.AuctionBuy
+--AH_Helper.AuctionBuyOrg = AuctionPanel.AuctionBuy
 AH_Helper.OnCheckBoxCheckOrg = AuctionPanel.OnCheckBoxCheck
 AH_Helper.SetItemNameOrg = AuctionPanel.SetItemName
 --------------------------------------------------------
@@ -477,7 +477,7 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 	hItem:Lookup(tInfo.aBidText[1]):SetText(nGold)
 	hItem:Lookup(tInfo.aBidText[2]):SetText(nSliver)
 	hItem:Lookup(tInfo.aBidText[3]):SetText(nCopper)]]
-    local smoney = AH_Helper.bExVersion and GetMoneyTextEx(hItem.tBidPrice, "font=18") or GetMoneyText(hItem.tBidPrice, "font=18", "all3", nil, 18)
+    local smoney = AH_Helper.bExVersion and GetMoneyTextEx(hItem.tBidPrice, "font=212") or GetMoneyText(hItem.tBidPrice, "font=212", "all3", nil, 18)
 	local hMoney = hItem:Lookup(tInfo.aBidText[1])
 	hMoney:Clear()
 	hMoney:AppendItemFromString(smoney)
@@ -488,7 +488,7 @@ function AuctionPanel.SetSaleInfo(hItem, szDataType, tItemData)
 		hItem:Lookup(tInfo.aBuyText[1]):SetText(nGold)
 		hItem:Lookup(tInfo.aBuyText[2]):SetText(nSliver)
 		hItem:Lookup(tInfo.aBuyText[3]):SetText(nCopper)]]
-        smoney = AH_Helper.bExVersion and GetMoneyTextEx(hItem.tBuyPrice, "font=18") or GetMoneyText(hItem.tBuyPrice, "font=18", "all3", nil, 18)
+        smoney = AH_Helper.bExVersion and GetMoneyTextEx(hItem.tBuyPrice, "font=212") or GetMoneyText(hItem.tBuyPrice, "font=212", "all3", nil, 18)
 		hMoney = hItem:Lookup(tInfo.aBuyText[1])
 		hMoney:Clear()
 		hMoney:AppendItemFromString(smoney)
@@ -772,7 +772,7 @@ function AuctionPanel.ApplyLookup(frame, szType, nSortType, szKey, nStart, bDesc
     return AH_Helper.ApplyLookupOrg(frame, szType, nSortType, szKey, nStart, bDesc, szSellerName)
 end
 
-function AuctionPanel.AuctionBuy(hItem, szDataType)
+--[[function AuctionPanel.AuctionBuy(hItem, szDataType)
 	if not AH_Helper.bGuard then
 		return AH_Helper.AuctionBuyOrg(hItem, szDataType)
 	end
@@ -797,7 +797,7 @@ function AuctionPanel.AuctionBuy(hItem, szDataType)
 	else
 		return AH_Helper.AuctionBuyOrg(hItem, szDataType)
 	end
-end
+end]]
 
 --修复搜索卖家后寄卖页无物品显示的问题
 function AuctionPanel.OnCheckBoxCheck()
@@ -1062,14 +1062,14 @@ function AH_Helper.UpdatePriceInfo(hList, szDataType)
 			hItem:Lookup(tInfo.aBuyText[2]):SetText(nSliver)
 			hItem:Lookup(tInfo.aBuyText[3]):SetText(nCopper)
 		end]]
-		local smoney = AH_Helper.bExVersion and GetMoneyTextEx(tBidPrice, "font=18") or GetMoneyText(tBidPrice, "font=18", "all3", nil, 18)
+		local smoney = AH_Helper.bExVersion and GetMoneyTextEx(tBidPrice, "font=212") or GetMoneyText(tBidPrice, "font=212", "all3", nil, 18)
 		local hMoney = hItem:Lookup(tInfo.aBidText[1])
 		hMoney:Clear()
 		hMoney:AppendItemFromString(smoney)
 		hMoney:FormatAllItemPos()
 
 		if MoneyOptCmp(hItem.tBuyPrice, NO_BID_PRICE) ~= 0 then
-			smoney = AH_Helper.bExVersion and GetMoneyTextEx(tBuyPrice, "font=18") or GetMoneyText(tBuyPrice, "font=18", "all3", nil, 18)
+			smoney = AH_Helper.bExVersion and GetMoneyTextEx(tBuyPrice, "font=212") or GetMoneyText(tBuyPrice, "font=212", "all3", nil, 18)
 			hMoney = hItem:Lookup(tInfo.aBuyText[1])
 			hMoney:Clear()
 			hMoney:AppendItemFromString(smoney)
@@ -1278,7 +1278,7 @@ function AH_Helper.AddWidget(frame)
 					{ bDevide = true },
 					{szOption = L("STR_HELPER_AUTOSEARCH"), bCheck = true, bChecked = AH_Helper.bAutoSearch, fnAction = function() AH_Helper.bAutoSearch = not AH_Helper.bAutoSearch end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_AUTOSEARCHTIPS")) end,},
 					--{szOption = L("STR_HELPER_FORMATMONEY"), bCheck = true, bChecked = AH_Helper.bFormatMoney, fnAction = function() AH_Helper.bFormatMoney = not AH_Helper.bFormatMoney end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_FORMATMONEYTIPS")) end,},
-					{szOption = L("STR_HELPER_GUARD"), bCheck = true, bChecked = AH_Helper.bGuard, fnAction = function() AH_Helper.bGuard = not AH_Helper.bGuard end,},
+					--{szOption = L("STR_HELPER_GUARD"), bCheck = true, bChecked = AH_Helper.bGuard, fnAction = function() AH_Helper.bGuard = not AH_Helper.bGuard end,},
 					{szOption = L("STR_HELPER_SHOWTIPEX"), bCheck = true, bChecked = _G["AH_Tip_Loaded"] and AH_Tip.bShowTipEx or false, fnAction = function() if _G["AH_Tip_Loaded"] then AH_Tip.bShowTipEx = not AH_Tip.bShowTipEx end end, fnDisable = function() return not _G["AH_Tip_Loaded"] end, fnMouseEnter = function() AH_Library.OutputTip(L("STR_HELPER_SHOWTIPEXTIPS")) end,},
 					--{szOption = L("STR_HELPER_EXVERSIONPRICE"), bCheck = true, bChecked = AH_Helper.bExVersion, fnAction = function() AH_Helper.bExVersion = not AH_Helper.bExVersion AH_Helper.UpdateList() end,},
 					{ bDevide = true },

@@ -448,11 +448,20 @@ function AH_Library.GetCraftRecipe(nCraftID)
 	return tRes
 end
 
+-- 优化数据读取
+local tTempCraftRecipeData = {}
+for _, k in pairs({4, 5, 6, 7}) do
+	if not tTempCraftRecipeData then
+		tTempCraftRecipeData[k] = {}
+	end
+	tTempCraftRecipeData[k] = AH_Library.GetCraftRecipe(k)
+end
+
 -- 返回 {szRecipeName, nCraftID, nRecipeID, szTip} 数据的表
 function AH_Library.GetAllRecipe()
 	local t = {}
 	for _, k in pairs({4, 5, 6, 7}) do
-		local tRes = AH_Library.GetCraftRecipe(k)
+		local tRes = tTempCraftRecipeData[k]
 		for _, v in ipairs(tRes) do
 			local recipe = GetRecipe(k, v[1])
 			if recipe then
@@ -472,7 +481,7 @@ function AH_Library.GetAllMaterial()
 	local t = {}
 	for _, k in pairs({4, 5, 6, 7}) do
 		if not t[k] then t[k] = {} end
-		local tRes = AH_Library.GetCraftRecipe(k)
+		local tRes = tTempCraftRecipeData[k]
 		for _, v in ipairs(tRes) do
 			local recipe = GetRecipe(k, v[1])
 			if recipe and recipe.nCraftType ~= ALL_CRAFT_TYPE.ENCHANT then
@@ -496,6 +505,7 @@ end
 
 AH_Library.tRecipeALL = AH_Library.GetAllRecipe()
 AH_Library.tMaterialALL = AH_Library.GetAllMaterial()
+
 do
 	local mt = {}
 	mt.__add = function(t1, t2)
