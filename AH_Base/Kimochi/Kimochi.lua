@@ -151,6 +151,14 @@ function WndBase:enable(...)
 end
 
 --- <summary>
+--- 获取 Wnd 组件是否有效
+--- </summary>
+--- <returns>组件是否有效</returns>
+function WndBase:valid()
+    return self._this:IsValid()
+end
+
+--- <summary>
 --- 设置或获取 Wnd 组件父级
 --- </summary>
 --- <param name="_parent">父级组件</param>
@@ -237,7 +245,7 @@ function WndBase:point(...)
 end
 
 --- <summary>
---- 移除控件	
+--- 移除控件
 --- </summary
 function WndBase:remove()
 	local _name = self:name()
@@ -407,7 +415,7 @@ function WndPageSet:ctor(_parent, _xml)
     local _h = parser.PageSet["@h"] or 100
     local _x = parser.PageSet["@x"] or 0
     local _y = parser.PageSet["@y"] or 0
-	
+
 	local hwnd = _AppendWnd(_parent, "WndPageSet", _name)
 	self._this = hwnd
 	self:this(self._this)
@@ -801,8 +809,6 @@ end
 
 -- WndRadioBox 组件，继承自 Wnd 基础类
 local WndRadioBox = class(WndBase)
-local _RadioBoxGroups = { }
-
 -- 构造 WndRadioBox 组件
 function WndRadioBox:ctor(_parent, _xml)
     assert(_parent ~= nil and _xml ~= nil, PARA_ERROR)
@@ -833,8 +839,8 @@ function WndRadioBox:ctor(_parent, _xml)
 
     self._this.OnCheckBoxCheck = function()
         if self._group then
-            for k, v in pairs(_RadioBoxGroups[self._group]) do
-                if v:group() == this._group and v:name() ~= this:GetName() then
+            for k, v in pairs(self._parent.groups[self._group]) do
+                if v:valid() and v:group() == self._group and v:name() ~= self:name() then
                     v:check(false)
                 end
             end
@@ -855,10 +861,13 @@ end
 -- 设置或获取 WndRadioBox 组别
 function WndRadioBox:group(_group)
     if _group then
-        if not _RadioBoxGroups[_group] then
-            _RadioBoxGroups[_group] = { }
+		if not self._parent.groups then
+			self._parent.groups = {}
+		end
+        if not self._parent.groups[_group] then
+            self._parent.groups[_group] = { }
         end
-        table.insert(_RadioBoxGroups[_group], self)
+        table.insert(self._parent.groups[_group], self)
         self._group = _group
         return self
     end
@@ -920,7 +929,6 @@ end
 
 -- WndTabBox Object
 local WndTabBox = class(WndBase)
-local _TabBoxGroups = {}
 function WndTabBox:ctor(_parent, _xml)
 	assert(_parent ~= nil and _xml ~= nil, PARA_ERROR)
 
@@ -934,7 +942,7 @@ function WndTabBox:ctor(_parent, _xml)
 	local _h = parser.TabBox["@h"] or 30
     local _x = parser.TabBox["@x"] or 0
     local _y = parser.TabBox["@y"] or 0
-	
+
 	local hwnd = _AppendWnd(_parent, "WndTabBox", _name)
 	self._text = hwnd:Lookup("", "Text_Default")
 	self:text(_text or "")
@@ -948,11 +956,11 @@ function WndTabBox:ctor(_parent, _xml)
 
 	self._this._group = _group
 	self:group(_group)
-	
+
 	self._this.OnCheckBoxCheck = function()
 		if self._group then
-			for k, v in pairs(_TabBoxGroups[self._group]) do
-				if v:group() == this._group and v:name() ~= this:GetName() then
+			for k, v in pairs(self._parent.groups[self._group]) do
+				if v:valid() and v:group() == self._group and v:name() ~= self:name() then
 					v:check(false)
 				end
 			end
@@ -964,10 +972,13 @@ end
 -- 设置或获取 WndTabBox 组别
 function WndTabBox:group(_group)
 	if _group then
-		if not _TabBoxGroups[_group] then
-			_TabBoxGroups[_group] = { }
+		if not self._parent.groups then
+			self._parent.groups = {}
 		end
-		table.insert(_TabBoxGroups[_group], self)
+		if not self._parent.groups[_group] then
+			self._parent.groups[_group] = {}
+		end
+		table.insert(self._parent.groups[_group], self)
 		self._group = _group
         return self
     end
