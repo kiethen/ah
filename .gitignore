@@ -1,3 +1,4 @@
 *.jx3dat
 *.dat
 *.key
+.DS_Store
