@@ -594,18 +594,20 @@ function AH_Library.PredictionTable()
 
 			if szDesc and szDesc ~= "" then
 				local szMap = string.match(szDesc, L("STR_LIBRARY_USEIN")) or string.match(szDesc, L("STR_LIBRARY_USEIN2"))
-				local index, _ = string.find(szDesc, L("STR_HELPER_ADDITIONALDROP"))
-				local szBoss = string.sub(string.match(szDesc, "£¬(.+)" .. L("STR_HELPER_ADDITIONALDROP")), 5, index - 1)
+				if szMap and szMap ~= "" then
+					local index, _ = string.find(szDesc, L("STR_HELPER_ADDITIONALDROP"))
+					local szBoss = string.sub(string.match(szDesc, "£¬(.+)" .. L("STR_HELPER_ADDITIONALDROP")), 5, index - 1)
 
-				tRes[szMap] = tRes[szMap] or {}
-				tRes[szMap][szBoss] = tRes[szMap][szBoss] or {}
-				tRes[szMap][szBoss][szName] = tRes[szMap][szBoss][szName] or {}
+					tRes[szMap] = tRes[szMap] or {}
+					tRes[szMap][szBoss] = tRes[szMap][szBoss] or {}
+					tRes[szMap][szBoss][szName] = tRes[szMap][szBoss][szName] or {}
 
-				string.gsub(szDesc, "this\.dwTabType\=(%d+) this.dwIndex=(%d+) ", function(k, v)
-					table.insert(tRes[szMap][szBoss][szName], {k, v})
-				end)
-				tRes[szMap][szBoss][szName].nIndex = tRow.nIndex
-				tRes[szMap][szBoss][szName].nUiId = tRow.nUiId
+					string.gsub(szDesc, "this\.dwTabType\=(%d+) this.dwIndex=(%d+) ", function(k, v)
+						table.insert(tRes[szMap][szBoss][szName], {k, v})
+					end)
+					tRes[szMap][szBoss][szName].nIndex = tRow.nIndex
+					tRes[szMap][szBoss][szName].nUiId = tRow.nUiId
+				end
 			end
 		end
 	end
