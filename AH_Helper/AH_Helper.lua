@@ -55,7 +55,7 @@ AH_Helper = {
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
 	szDataPathCDiamond = "\\Interface\\AH\\AH_Base\\data\\ahcdiamond.jx3dat",
-	szVersion = "3.5.3",
+	szVersion = "3.5.4",
 }
 
 --------------------------------------------------------

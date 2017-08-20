@@ -548,9 +548,9 @@ local function LootingBreathe()
 		local mail = GetMailClient().GetMailInfo(tLoot.nMailID)
 		if mail then
 			if tLoot.nIndex then
-				mail.TakeItem(tLoot.nIndex)
+				mail.TakeItem(AH_MailBank.dwMailNpcID, tLoot.nIndex)
 			else
-				mail.TakeMoney()
+				mail.TakeMoney(AH_MailBank.dwMailNpcID)
 			end
 			if not mail.bReadFlag then
 				mail.Read()
