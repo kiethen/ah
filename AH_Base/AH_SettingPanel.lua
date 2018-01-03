@@ -20,7 +20,7 @@ function AH_SettingPanel.Init()
 	
 	local feedBack = Kimochi(pageSet, _Xml([[<Button text="%s" x="670" y="4" gold="true" />]], L("STR_SETTING_FEEDBACK")))
 	feedBack.click = function()
-		OpenInternetExplorer("http://weibo.com/nzgeneral")
+		OpenBrowser("http://weibo.com/nzgeneral")
 	end
 
 	local x = 20
