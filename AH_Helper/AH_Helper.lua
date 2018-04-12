@@ -55,7 +55,7 @@ AH_Helper = {
 
 	szDataPath = "\\Interface\\AH\\AH_Base\\data\\ah.jx3dat",
 	szDataPathCDiamond = "\\Interface\\AH\\AH_Base\\data\\ahcdiamond.jx3dat",
-	szVersion = "3.5.4",
+	szVersion = "3.6.5",
 }
 
 --------------------------------------------------------
@@ -1347,6 +1347,14 @@ function AH_Helper.AuctionAutoSell(frame)
 		OutputMessage("MSG_ANNOUNCE_RED", L("STR_HELPER_SELLERROR"))
 		return
 	end
+	
+	if IsBagInSort then -- 背包整理中禁止交易
+		AuctionPanel.ClearBox(box)
+		AuctionPanel.UpdateSaleInfo(frame, true)
+		RemoveUILockItem("Auction")
+		OutputMessage("MSG_ANNOUNCE_RED", L("STR_HELPER_BAGINSORT"))
+		return
+	end
 	--[[local nGold   = FormatMoney(hWndSale:Lookup("Edit_OPGold"))
 	local nSliver = FormatMoney(hWndSale:Lookup("Edit_OPSilver"))
 	local nCopper = FormatMoney(hWndSale:Lookup("Edit_OPCopper"))
@@ -1429,6 +1437,14 @@ function AH_Helper.AuctionSimilarAutoSell(frame)
 		AuctionPanel.UpdateSaleInfo(frame, true)
 		RemoveUILockItem("Auction")
 		OutputMessage("MSG_ANNOUNCE_RED", L("STR_HELPER_SELLERROR"))
+		return
+	end
+	
+	if IsBagInSort then -- 背包整理中禁止交易
+		AuctionPanel.ClearBox(box)
+		AuctionPanel.UpdateSaleInfo(frame, true)
+		RemoveUILockItem("Auction")
+		OutputMessage("MSG_ANNOUNCE_RED", L("STR_HELPER_BAGINSORT"))
 		return
 	end
 	--[[local nGold   = FormatMoney(hWndSale:Lookup("Edit_OPGold"))
