@@ -1348,7 +1348,7 @@ function AH_Helper.AuctionAutoSell(frame)
 		return
 	end
 	
-	if IsBagInSort then -- 背包整理中禁止交易
+	if IsBagInSort() then -- 背包整理中禁止交易
 		AuctionPanel.ClearBox(box)
 		AuctionPanel.UpdateSaleInfo(frame, true)
 		RemoveUILockItem("Auction")
@@ -1440,7 +1440,7 @@ function AH_Helper.AuctionSimilarAutoSell(frame)
 		return
 	end
 	
-	if IsBagInSort then -- 背包整理中禁止交易
+	if IsBagInSort() then -- 背包整理中禁止交易
 		AuctionPanel.ClearBox(box)
 		AuctionPanel.UpdateSaleInfo(frame, true)
 		RemoveUILockItem("Auction")
