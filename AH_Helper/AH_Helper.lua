@@ -521,7 +521,7 @@ end
 
 function AuctionPanel.FormatAuctionTime(nTime)
 	if not AH_Helper.bRealTime and nTime < 600 then
-		return g_tAuctionString.STR_AUCTION_NEAR_DUE
+		return L("STR_HELPER_NEAR_DUE")
 	end
 
 	local szText = ""
